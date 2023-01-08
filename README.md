@@ -1,4 +1,10 @@
-### 2. Setup Common Networking with MultiLoader Template for IntelliJ IDEA
+Initial project setup, more to come. 
+## Requirements
+
+* IntelliJ IDEA
+* OpenJDK 1.17
+
+### 1. Setup Common Networking with MultiLoader Template for IntelliJ IDEA
 
 ## IntelliJ IDEA
 #### Common Networking uses the [MultiLoader Template][3] for combining sources of Fabric and Forge.
@@ -8,3 +14,5 @@
 3. Open the Gradle tab in IDEA if it has not already been opened. Navigate to `Your Project > Forge > Tasks > forgegradle runs > genIntellijRuns`. Run this task to set up run configurations for Forge.
 4. Open your Run/Debug Configurations. Under the Application category there should now be options to run Forge and Fabric projects. Select one of the client options and try to run it.
 5. Assuming you were able to run the game in step 7 your workspace should now be set up.
+
+[3]: https://github.com/jaredlll08/MultiLoader-Template
