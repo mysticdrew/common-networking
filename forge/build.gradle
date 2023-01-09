@@ -9,6 +9,14 @@ version = "${project.version}+${project.minecraft_version}-forge"
 group = project.group_id
 archivesBaseName = project.base_name
 
+// Disables Gradle's custom module metadata from being published to maven. The
+// metadata includes mapped dependencies which are not reasonably consumable by
+// other mod developers.
+tasks.withType(GenerateModuleMetadata) {
+
+    enabled = false
+}
+
 minecraft {
     mappings channel: 'official', version: minecraft_version
     runs {
@@ -95,7 +103,15 @@ publishing {
             groupId project.group
             artifactId project.archivesBaseName
             version project.version
-            from components.java
+            artifact jar
+
+            artifact project.sourcesJar {
+                classifier 'sources'
+            }
+
+            artifact project.javadocJar {
+                classifier 'javadoc'
+            }
         }
     }
     repositories {
