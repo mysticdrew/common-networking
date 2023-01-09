@@ -82,9 +82,7 @@ jar {
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : project.jar.archiveVersion,
                 "Implementation-Vendor"   : project.group_id,
-                "Implementation-URL"      : "http://journeymap.info",
                 "Implementation-Timestamp": getDate(),
-                "FMLAT"                   : "accesstransformer.cfg",
         ])
     }
 }
