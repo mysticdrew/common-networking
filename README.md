@@ -1,4 +1,22 @@
 Initial project setup, more to come. 
+## Current Maven Versions are not stable. 
+### Add to project:
+```
+repositories {
+    maven {
+        url = "https://jm.gserv.me/repository/maven-public/"
+    }
+}
+Fabric:
+dependencies {
+    modImplementation 'net.mysticdrew:common-networking:1.0.0+1.19.3-fabric'
+}
+Forge:
+dependencies {
+    implementation fg.deobf('net.mysticdrew:common-networking:1.0.0+1.19.3-forge')
+}
+```
+
 ## Requirements
 
 * IntelliJ IDEA

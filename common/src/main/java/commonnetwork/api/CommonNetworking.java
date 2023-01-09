@@ -1,6 +1,6 @@
 package commonnetwork.api;
 
-import commonnetwork.CommonNetwork;
+import commonnetwork.networking.PacketRegistrationHandler;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import net.minecraft.network.FriendlyByteBuf;
@@ -12,15 +12,34 @@ import java.util.function.Function;
 
 public class CommonNetworking
 {
+    private static CommonNetworking INSTANCE;
+    private final PacketRegistrationHandler handler;
+
+    public CommonNetworking(PacketRegistrationHandler handler)
+    {
+        INSTANCE = this;
+        this.handler = handler;
+    }
+
+    private static CommonNetworking getInstance()
+    {
+        if (INSTANCE != null)
+        {
+            return INSTANCE;
+        }
+        throw new ExceptionInInitializerError("Common Networking is not initialized!");
+    }
+
     /**
      * Gets the side
      * CLIENT is the client side in
      * SERVER
+     *
      * @return the side
      */
     public static Side getSide()
     {
-        return CommonNetwork.getInstance().packetRegistration().getSide();
+        return getInstance().handler.getSide();
     }
 
     /**
@@ -32,7 +51,6 @@ public class CommonNetworking
      */
     public static <T> void registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
-        CommonNetwork.getInstance().packetRegistration()
-                .registerPacket(packetIdentifier, messageType, encoder, decoder, handler);
+        getInstance().handler.registerPacket(packetIdentifier, messageType, encoder, decoder, handler);
     }
 }

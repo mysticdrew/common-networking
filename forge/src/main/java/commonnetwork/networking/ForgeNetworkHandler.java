@@ -1,5 +1,6 @@
 package commonnetwork.networking;
 
+import commonnetwork.Constants;
 import commonnetwork.networking.data.NetworkHandler;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
@@ -37,6 +38,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler implements Ne
                 .networkProtocolVersion(() -> "1")
                 .simpleChannel();
         channel.registerMessage(0, container.messageType(), container.encoder(), container.decoder(), buildHandler(container.handler()));
+        Constants.LOG.info("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.CLIENT);
         CHANNELS.put(container.messageType(), channel);
     }
 

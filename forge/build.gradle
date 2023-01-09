@@ -5,18 +5,12 @@ plugins {
     id 'net.minecraftforge.gradle' version '5.1.+'
 }
 
-archivesBaseName = "${mod_name}-forge-${minecraft_version}"
+version = "${project.version}+${project.minecraft_version}-forge"
+group = project.group_id
+archivesBaseName = project.base_name
 
 minecraft {
     mappings channel: 'official', version: minecraft_version
-    
-    if (project.hasProperty('forge_ats_enabled') && project.findProperty('forge_ats_enabled').toBoolean()) {
-        // This location is hardcoded in Forge and can not be changed.
-        // https://github.com/MinecraftForge/MinecraftForge/blob/be1698bb1554f9c8fa2f58e32b9ab70bc4385e60/fmlloader/src/main/java/net/minecraftforge/fml/loading/moddiscovery/ModFile.java#L123
-        accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-        project.logger.debug('Forge Access Transformers are enabled for this project.')
-    }
-
     runs {
         client {
             workingDirectory project.file('run')
@@ -78,6 +72,22 @@ processResources {
     from project(":common").sourceSets.main.resources
 }
 
+jar {
+//    dependsOn 'processDocs'
+    manifest {
+        attributes([
+                "Specification-Title"     : project.name,
+                "Specification-Vendor"    : project.group_id,
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : project.group_id,
+                "Implementation-URL"      : "http://journeymap.info",
+                "Implementation-Timestamp": getDate(),
+                "FMLAT"                   : "accesstransformer.cfg",
+        ])
+    }
+}
 
 jar.finalizedBy('reobfJar')
 
@@ -89,10 +99,30 @@ publishing {
             version project.version
             artifact jar
         }
+
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            artifact sourcesJar
+        }
+
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            artifact javadocJar
+        }
     }
     repositories {
         maven {
-            url "file://" + System.getenv("local_maven")
+            name = "CommonNetworking"
+            url = uri("https://jm.gserv.me/repository/maven-releases/")
+
+            credentials {
+                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
+                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
+            }
         }
     }
 }

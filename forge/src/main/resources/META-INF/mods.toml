@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[44,)"
+license="All rights reserved"
+[[mods]]
+modId="commonnetworking"
+version="${file.jarVersion}"
+displayName="Common Networking"
+logoFile="multiloader.png"
+credits="Thanks for this example mod goes to Java"
+authors="Love, Cheese and small house plants"
+description='''
+'''
+[[dependencies.commonnetworking]]
+    modId="forge"
+    mandatory=true
+    versionRange="[44,)"
+    ordering="NONE"
+    side="BOTH"
+# Here's another dependency
+[[dependencies.commonnetworking]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.19.3,1.20)"
+    ordering="NONE"
+    side="BOTH"
+    mandator=false

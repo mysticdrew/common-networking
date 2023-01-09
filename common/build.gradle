@@ -4,13 +4,15 @@ plugins {
     id 'maven-publish'
 }
 
-archivesBaseName = "${mod_name}-common-${minecraft_version}"
+version = "${project.version}+${project.minecraft_version}-common"
+group = project.group_id
+archivesBaseName = project.base_name
 
 minecraft {
     version(minecraft_version)
-    runs {   
+    runs {
         if (project.hasProperty('common_runs_enabled') ? project.findProperty('common_runs_enabled').toBoolean() : true) {
-        
+
             server(project.hasProperty('common_server_run_name') ? project.findProperty('common_server_run_name') : 'vanilla_server') {
                 workingDirectory(this.file("run"))
             }
@@ -48,7 +50,13 @@ publishing {
 
     repositories {
         maven {
-            url "file://" + System.getenv("local_maven")
+            name = "CommonNetworking"
+            url = uri("https://jm.gserv.me/repository/maven-releases/")
+
+            credentials {
+                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
+                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
+            }
         }
     }
 }

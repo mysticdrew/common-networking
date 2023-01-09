@@ -4,7 +4,9 @@ plugins {
     id 'idea'
 }
 
-archivesBaseName = "${mod_name}-fabric-${minecraft_version}"
+version = "${project.version}+${project.minecraft_version}-fabric"
+group = project.group_id
+archivesBaseName = project.base_name
 
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
@@ -12,7 +14,8 @@ dependencies {
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-    implementation project(":common")
+
+    compileOnly project(":common")
 }
 
 loom {
@@ -58,7 +61,13 @@ publishing {
 
     repositories {
         maven {
-            url "file://" + System.getenv("local_maven")
+            name = "CommonNetworking"
+            url = uri("https://jm.gserv.me/repository/maven-releases/")
+
+            credentials {
+                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
+                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
+            }
         }
     }
 }
