@@ -39,8 +39,11 @@ Creating packets are very similar to how you would do it in Forge or Fabric alre
 Sending a packet can either use the [Dispatcher](common/src/main/java/commonnetwork/api/Dispatcher.java) for static calls or by 
 getting the [NetworkHandler](common/src/main/java/commonnetwork/api/NetworkHandler.java) from the [Network Class](common/src/main/java/commonnetwork/api/Network.java).
 
+## Contributing: 
 
-## Requirements
+Pull Requests are welcome and encouraged. 
+
+### Working with the Source
 
 * IntelliJ IDEA
 * OpenJDK 1.17
