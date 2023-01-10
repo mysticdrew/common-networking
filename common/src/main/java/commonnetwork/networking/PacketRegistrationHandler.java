@@ -1,7 +1,7 @@
 package commonnetwork.networking;
 
 
-import commonnetwork.networking.data.NetworkHandler;
+import commonnetwork.api.NetworkHandler;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
@@ -20,6 +20,11 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
 
     protected final Side side;
 
+    /**
+     * Handles packet registration
+     *
+     * @param side - The side
+     */
     public PacketRegistrationHandler(Side side)
     {
         this.side = side;

@@ -1,26 +1,27 @@
-modLoader="javafml"
-loaderVersion="[44,)"
-license="All rights reserved"
+modLoader = "javafml"
+loaderVersion = "[44,)"
+license = "MIT"
 [[mods]]
-modId="commonnetworking"
-version="${file.jarVersion}"
-displayName="Common Networking"
-logoFile="multiloader.png"
-credits="Thanks for this example mod goes to Java"
-authors="Love, Cheese and small house plants"
-description='''
+modId = "commonnetworking"
+version = "${file.jarVersion}"
+displayName = "Common Networking"
+logoFile = "multiloader.png"
+credits = "Jared for multiloader"
+authors = "Mysticdrew"
+description = '''
+This mod unifies networking in to a single location to work with Forge and Fabric, so developers only need to work in the common module.
 '''
 [[dependencies.commonnetworking]]
-    modId="forge"
-    mandatory=true
-    versionRange="[44,)"
-    ordering="NONE"
-    side="BOTH"
+modId = "forge"
+mandatory = true
+versionRange = "[44,)"
+ordering = "NONE"
+side = "BOTH"
 # Here's another dependency
 [[dependencies.commonnetworking]]
-    modId="minecraft"
-    mandatory=true
-    versionRange="[1.19.3,1.20)"
-    ordering="NONE"
-    side="BOTH"
-    mandator=false
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.19.3,)"
+ordering = "NONE"
+side = "BOTH"
+mandator = false

@@ -1,5 +1,12 @@
-Initial project setup, more to come. 
-## Current Maven Versions are not stable. 
+## Common Networking:
+This library mod aims to unify networking and packet registration between mod loaders so that
+Developers using Jared's [MultiLoader Template][3] only need to deal with networking in the common module. 
+But, it is not limited to only usage with MultiLoader. This can be used in other projects as well.
+
+This also allows your mod to be loader agnostic. The way packets are built and constructed, 
+Forge version of the mod on the client, can talk to the Fabric version on the server. 
+Though you will need to create your own handshake packet.
+
 ### Add to project:
 ```
 repositories {
@@ -17,9 +24,21 @@ dependencies {
 }
 Common:
 dependencies {
-    implementation fg.deobf('mysticdrew:common-networking:1.0.0+1.19.3-common')
+    implementation 'mysticdrew:common-networking:1.0.0+1.19.3-common'
 }
 ```
+### How to Use:
+Using the mod is quite simple.
+
+Register your packets anytime during startup in your [Common Mod Class](example/common/ExampleModCommon.java) and/or your [Common Client Mod Class](example/common/client/ExampleModCommonClient.java). 
+
+See [Packet Registration Class](example/common/network/ExamplePacketRegistration.java) the example uses a class with an init method. This is not required.
+
+Creating packets are very similar to how you would do it in Forge or Fabric already, see [ExamplePacketOne](example/common/network/ExamplePacketOne.java).
+
+Sending a packet can either use the [Dispatcher](common/src/main/java/commonnetwork/api/Dispatcher.java) for static calls or by 
+getting the [NetworkHandler](common/src/main/java/commonnetwork/api/NetworkHandler.java) from the [Network Class](common/src/main/java/commonnetwork/api/Network.java).
+
 
 ## Requirements
 

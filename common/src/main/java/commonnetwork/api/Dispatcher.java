@@ -8,10 +8,11 @@ public class Dispatcher
      * Sends the packet to the server, if the server has the packet registered.
      *
      * @param packet - the packet
+     * @param <T>    - The type
      */
     public static <T> void sendToServer(T packet)
     {
-        Network.getDispatcher().sendToServer(packet);
+        Network.getNetworkHandler().sendToServer(packet);
     }
 
     /**
@@ -20,10 +21,11 @@ public class Dispatcher
      *
      * @param packet      - the packet
      * @param ignoreCheck - ignore the check if the server has the packet registered.
+     * @param <T>         - The type
      */
     public static <T> void sendToServer(T packet, boolean ignoreCheck)
     {
-        Network.getDispatcher().sendToServer(packet, ignoreCheck);
+        Network.getNetworkHandler().sendToServer(packet, ignoreCheck);
     }
 
     /**
@@ -31,21 +33,10 @@ public class Dispatcher
      *
      * @param packet - the packet
      * @param player - the player
+     * @param <T>    - The type
      */
     public static <T> void sendToClient(T packet, ServerPlayer player)
     {
-        Network.getDispatcher().sendToClient(packet, player);
-    }
-
-    /**
-     * Sends the packet to the client player. Can ignore the check if the client has the id registered.
-     *
-     * @param packet      - the packet
-     * @param player      - the player
-     * @param ignoreCheck - ignore the check if the player has the packet registered.
-     */
-    public static <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
-    {
-        Network.getDispatcher().sendToClient(packet, player, ignoreCheck);
+        Network.getNetworkHandler().sendToClient(packet, player);
     }
 }

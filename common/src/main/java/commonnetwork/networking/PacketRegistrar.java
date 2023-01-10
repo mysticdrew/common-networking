@@ -17,11 +17,15 @@ public interface PacketRegistrar
     Side getSide();
 
     /**
+     * Packet Registration
+     *
      * @param packetIdentifier - The unique {@link ResourceLocation} packet id.
      * @param messageType      - The class of the packet.
      * @param encoder          - The encoder method.
      * @param decoder          - The decoder method.
      * @param handler          - The handler method.
+     * @param <T>              - The class type
+     * @return The registrar for chaining registrations.
      */
     <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler);
 }

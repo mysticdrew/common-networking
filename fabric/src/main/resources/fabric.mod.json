@@ -1,37 +1,38 @@
 {
-    "schemaVersion": 1,
-    "id": "commonnetworking",
-    "version": "${version}",
-
-    "name": "Common Network",
-    "description": "This is an example description! Tell everyone what your mod is about!",
-    "authors": [
-      "Me!"
+  "schemaVersion": 1,
+  "id": "commonnetworking",
+  "version": "${version}",
+  "name": "Common Network",
+  "description": "This mod unifies networking in to a single location to work with Forge and Fabric, so developers only need to work in the common module.",
+  "authors": [
+    "Mysticdrew"
+  ],
+  "contact": {
+    "sources": "https://github.com/mysticdrew/common-networking"
+  },
+  "license": "MIT",
+  "icon": "assets/modid/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "commonnetwork.CommonNetworkFabric"
     ],
-    "contact": {
-      "homepage": "https://fabricmc.net/",
-      "sources": "https://github.com/FabricMC/fabric-example-mod"
-    },
-
-    "license": "CC0-1.0",
-    "icon": "assets/modid/icon.png",
-
-    "environment": "*",
-    "entrypoints": {
-      "main": [
-        "commonnetwork.CommonNetworkFabric"
-      ],
-      "client": [
-        "commonnetwork.CommonNetworkFabric"
-      ]
-    },
-    "depends": {
-      "fabricloader": ">=0.14",
-      "fabric": "*",
-      "minecraft": "1.19.3",
-      "java": ">=17"
-    },
-    "suggests": {
-      "another-mod": "*"
+    "client": [
+      "commonnetwork.CommonNetworkFabric"
+    ]
+  },
+  "custom": {
+    "modmenu": {
+      "links": {
+        "modmenu.discord": "https://discord.gg/eP8gE69",
+        "github": "https://github.com/mysticdrew/common-networking"
+      }
     }
+  },
+  "depends": {
+    "fabricloader": ">=0.14",
+    "fabric": "*",
+    "minecraft": ">=1.19.3",
+    "java": ">=17"
   }
+}

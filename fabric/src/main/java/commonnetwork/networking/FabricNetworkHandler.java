@@ -71,13 +71,8 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
-        this.sendToClient(packet, player, false);
-    }
-
-    public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
-    {
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        if (ServerPlayNetworking.canSend(player, message.id()) || ignoreCheck)
+        if (ServerPlayNetworking.canSend(player, message.id()))
         {
             FriendlyByteBuf buf = PacketByteBufs.create();
             buf.writeByte(0); // handle forge discriminator

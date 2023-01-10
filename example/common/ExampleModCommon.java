@@ -10,8 +10,8 @@ public class ExampleModCommon
 {
     public ExampleModCommon()
     {
-        // initialize packets
-        new TestRegistration().init();
+        // initialize and register packets
+        new ExamplePacketRegistration().init();
     }
 
     public void onPlayerJoinServer(ServerPlayer player) {
