@@ -1,7 +1,5 @@
 package commonnetwork.networking;
 
-
-import commonnetwork.networking.data.NetworkHandler;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
@@ -14,30 +12,37 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class PacketRegistrationHandler implements NetworkHandler, PacketRegistrar
+public class DelayedPacketRegistrationHandler implements PacketRegistrar
 {
-    final Map<Class<?>, PacketContainer<?>> PACKET_MAP = new HashMap<>();
+    private static final Map<Class<?>, PacketContainer<?>> QUEUED_PACKET_MAP = new HashMap<>();
 
-    protected final Side side;
 
-    public PacketRegistrationHandler(Side side)
+    public DelayedPacketRegistrationHandler()
     {
-        this.side = side;
+
     }
 
+    @Override
+    public Side getSide()
+    {
+        return Side.CLIENT;
+    }
+
+    @Override
     public <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(packetIdentifier, messageType, encoder, decoder, handler);
-        PACKET_MAP.put(messageType, container);
-        registerPacket(container);
+        QUEUED_PACKET_MAP.put(messageType, container);
         return this;
     }
 
-    public Side getSide()
+
+    public void registerQueuedPackets(PacketRegistrationHandler packetRegistration)
     {
-        return side;
+        if (!QUEUED_PACKET_MAP.isEmpty())
+        {
+            packetRegistration.PACKET_MAP.putAll(QUEUED_PACKET_MAP);
+            QUEUED_PACKET_MAP.forEach((aClass, container) -> packetRegistration.registerPacket(container));
+        }
     }
-
-    abstract <T> void registerPacket(PacketContainer<T> container);
-
 }

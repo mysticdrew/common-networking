@@ -23,22 +23,25 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
     private final Map<Class<?>, SimpleChannel> CHANNELS = new HashMap<>();
 
-    public ForgeNetworkHandler()
+    public ForgeNetworkHandler(Side side)
     {
-        super();
+        super(side);
     }
 
     protected <T> void registerPacket(PacketContainer<T> container)
     {
-        SimpleChannel channel = NetworkRegistry.ChannelBuilder
-                .named(container.packetIdentifier())
-                .clientAcceptedVersions((a) -> true)
-                .serverAcceptedVersions((a) -> true)
-                .networkProtocolVersion(() -> "1")
-                .simpleChannel();
-        channel.registerMessage(0, container.messageType(), container.encoder(), container.decoder(), buildHandler(container.handler()));
-        Constants.LOG.info("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.CLIENT);
-        CHANNELS.put(container.messageType(), channel);
+        if (CHANNELS.get(container.messageType()) == null)
+        {
+            SimpleChannel channel = NetworkRegistry.ChannelBuilder
+                    .named(container.packetIdentifier())
+                    .clientAcceptedVersions((a) -> true)
+                    .serverAcceptedVersions((a) -> true)
+                    .networkProtocolVersion(() -> "1")
+                    .simpleChannel();
+            channel.registerMessage(0, container.messageType(), container.encoder(), container.decoder(), buildHandler(container.handler()));
+            Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), this.side);
+            CHANNELS.put(container.messageType(), channel);
+        }
     }
 
     public <T> void sendToServer(T packet)
