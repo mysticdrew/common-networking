@@ -1,7 +1,6 @@
 package commonnetwork.networking;
 
 
-import commonnetwork.Constants;
 import commonnetwork.networking.data.NetworkHandler;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
@@ -15,7 +14,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class PacketRegistrationHandler implements NetworkHandler
+public abstract class PacketRegistrationHandler implements NetworkHandler, PacketRegistrar
 {
     protected final Map<Class<?>, PacketContainer<?>> PACKET_MAP = new HashMap<>();
 
@@ -25,11 +24,12 @@ public abstract class PacketRegistrationHandler implements NetworkHandler
     {
     }
 
-    public <T> void registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
+    public <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(packetIdentifier, messageType, encoder, decoder, handler);
         PACKET_MAP.put(messageType, container);
         registerPacket(container);
+        return this;
     }
 
     public Side getSide()

@@ -1,7 +1,6 @@
 package commonnetwork.networking;
 
 import commonnetwork.Constants;
-import commonnetwork.networking.data.NetworkHandler;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
@@ -20,7 +19,7 @@ import java.util.function.Supplier;
 
 import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
 
-public class ForgeNetworkHandler extends PacketRegistrationHandler implements NetworkHandler
+public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
     private final Map<Class<?>, SimpleChannel> CHANNELS = new HashMap<>();
 

@@ -12,7 +12,7 @@ public class CommonNetworkForge
 {
     public CommonNetworkForge()
     {
-        new CommonNetwork(new ForgeNetworkHandler());
+        new CommonNetworkMod(new ForgeNetworkHandler());
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetupEvent);
     }
 

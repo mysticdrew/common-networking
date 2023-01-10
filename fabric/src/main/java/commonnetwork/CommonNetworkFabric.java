@@ -9,7 +9,7 @@ public class CommonNetworkFabric implements ModInitializer
 
     public CommonNetworkFabric()
     {
-        new CommonNetwork(new FabricNetworkHandler());
+        new CommonNetworkMod(new FabricNetworkHandler());
     }
 
     @Override
