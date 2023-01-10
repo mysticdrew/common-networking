@@ -1,9 +1,38 @@
+buildscript {
+    repositories {
+        mavenCentral()
+
+        maven {
+            name = "forge"
+            url = "https://maven.minecraftforge.net"
+        }
+        maven {
+            url = 'https://maven.parchmentmc.org'
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url = 'https://repo.spongepowered.org/maven'
+        }
+    }
+
+    dependencies {
+        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
+
+        classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
+    }
+}
 plugins {
     id 'java'
     id 'eclipse'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '5.1.+'
 }
+
+apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: "com.modrinth.minotaur"
+
 
 version = "${project.version}+${project.minecraft_version}-forge"
 group = project.group_id
@@ -81,7 +110,7 @@ processResources {
 }
 
 jar {
-//    dependsOn 'processDocs'
+    dependsOn 'processDocs'
     manifest {
         attributes([
                 "Specification-Title"     : project.name,
@@ -93,6 +122,19 @@ jar {
                 "Implementation-Timestamp": getDate(),
         ])
     }
+}
+
+task processDocs(type: Copy) {
+    // update docs
+    from(file("../doc/")) {
+        include '*.html'
+        expand 'version': project.version,
+                'date': getDate(),
+                'mcversion': project.minecraft_version,
+                'loaderversion': project.forge_version,
+                'loadername': "Forge"
+    }
+    into 'build/doc'
 }
 
 jar.finalizedBy('reobfJar')
@@ -124,5 +166,52 @@ publishing {
                 password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
             }
         }
+    }
+}
+
+// Automated upload to CurseForge for the win!
+if (!project.hasProperty("curseForgeApiKey")) {
+    ext.curseForgeApiKey = "notset"
+}
+if (!project.hasProperty("modrinthApiKey")) {
+    ext.modrinthApiKey = "notset"
+}
+
+curseforge {
+    project {
+        id = '806044'
+        apiKey = "${curseForgeApiKey}"
+        changelogType = 'html'
+        releaseType = release_type
+        addGameVersion project.minecraft_version
+        mainArtifact(jar) {
+            displayName = "${archivesBaseName}-${version}"
+            changelog = file('/build/doc/changelog.html')
+        }
+    }
+}
+
+
+tasks.modrinth.dependsOn(tasks.build)
+
+modrinth {
+    token = "${modrinthApiKey}"
+    projectId = "HIuqnQpi"
+    versionNumber = "${version}"
+    versionName = "${archivesBaseName}-${version}"
+    versionType = release_type
+    uploadFile = jar
+    gameVersions = ["${project.minecraft_version}"]
+    loaders = ["forge"]
+    changelog = file('/build/doc/changelog.html').exists() ? file('/build/doc/changelog.html').text : null
+}
+
+// Ensure build is done prior to cursegradle tasks
+project.afterEvaluate {
+    project.tasks.findAll { task ->
+        (task.name.startsWith('curseforge') || task.name.startsWith('modrinth'))
+                && (task.name != 'curseforge' || task.name != 'modrinth')
+    }.each { projectTask ->
+        projectTask.dependsOn build
     }
 }

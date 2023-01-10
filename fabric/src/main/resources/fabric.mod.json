@@ -11,7 +11,7 @@
     "sources": "https://github.com/mysticdrew/common-networking"
   },
   "license": "MIT",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [

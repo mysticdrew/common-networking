@@ -1,8 +1,25 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
+    }
+}
+
 plugins {
     id 'fabric-loom' version '1.0-SNAPSHOT'
     id 'maven-publish'
     id 'idea'
+    id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
+
+apply plugin: "com.modrinth.minotaur"
+
 
 version = "${project.version}+${project.minecraft_version}-fabric"
 group = project.group_id
@@ -44,6 +61,33 @@ loom {
     }
 }
 
+jar {
+    dependsOn 'processDocs'
+    manifest {
+        attributes([
+                "Specification-Title"     : project.name,
+                "Specification-Vendor"    : project.group_id,
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : "${archiveVersion}",
+                "Implementation-Vendor"   : project.group_id,
+                "Implementation-Timestamp": getDate()
+        ])
+    }
+}
+
+task processDocs(type: Copy) {
+    // update docs
+    from(file("../doc/")) {
+        include '*.html'
+        expand 'version': project.version,
+                'date': getDate(),
+                'mcversion': project.minecraft_version,
+                'loaderversion': project.fabric_version,
+                'loadername': "Fabric"
+    }
+    into 'build/doc'
+}
 
 processResources {
     from project(":common").sourceSets.main.resources
@@ -80,4 +124,36 @@ publishing {
             }
         }
     }
+}
+
+curseforge {
+    project {
+        id = '806044'
+        apiKey = "${curseForgeApiKey}"
+        changelogType = 'html'
+        releaseType = release_type
+        addGameVersion project.minecraft_version
+        addGameVersion 'Fabric'
+        addGameVersion 'Quilt'
+
+        mainArtifact(remapJar) {
+            displayName = "${archivesBaseName}-${version}"
+            changelog = file('/build/doc/changelog.html')
+        }
+    }
+}
+
+
+tasks.modrinth.dependsOn(tasks.build)
+
+modrinth {
+    token = "${modrinthApiKey}"
+    projectId = "HIuqnQpi"
+    versionNumber = "${version}"
+    versionName = "${archivesBaseName}-${version}"
+    versionType = release_type
+    uploadFile = remapJar
+    gameVersions = ["${project.minecraft_version}"]
+    loaders = ["fabric", "quilt"]
+    changelog = file('/build/doc/changelog.html').exists() ? file('/build/doc/changelog.html').text : null
 }

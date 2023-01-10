@@ -7,6 +7,10 @@ This also allows your mod to be loader agnostic. The way packets are built and c
 Forge version of the mod on the client, can talk to the Fabric version on the server. 
 Though you will need to create your own handshake packet.
 
+#### Downloads:
+- [CurseForge][1]
+- [Modrinth][2]
+
 ### Add to project:
 ```
 repositories {
@@ -58,5 +62,9 @@ Pull Requests are welcome and encouraged.
 3. Open the Gradle tab in IDEA if it has not already been opened. Navigate to `Your Project > Forge > Tasks > forgegradle runs > genIntellijRuns`. Run this task to set up run configurations for Forge.
 4. Open your Run/Debug Configurations. Under the Application category there should now be options to run Forge and Fabric projects. Select one of the client options and try to run it.
 5. Assuming you were able to run the game in step 7 your workspace should now be set up.
+
+[1]: https://www.curseforge.com/minecraft/mc-mods/common-network
+
+[2]: https://modrinth.com/mod/common-network
 
 [3]: https://github.com/jaredlll08/MultiLoader-Template
