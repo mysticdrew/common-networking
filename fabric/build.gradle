@@ -8,6 +8,14 @@ version = "${project.version}+${project.minecraft_version}-fabric"
 group = project.group_id
 archivesBaseName = project.base_name
 
+// Disables Gradle's custom module metadata from being published to maven. The
+// metadata includes mapped dependencies which are not reasonably consumable by
+// other mod developers.
+tasks.withType(GenerateModuleMetadata) {
+
+    enabled = false
+}
+
 dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()
