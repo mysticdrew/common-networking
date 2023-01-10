@@ -17,6 +17,6 @@ public class ExampleModCommon
     public void onPlayerJoinServer(ServerPlayer player) {
         Dispatcher.sendToClient(new ExamplePacketOne(), player);
         // either works fine.
-        Network.getDispatcher().sendToClient(new ExamplePacketOne(), player);
+        Network.getNetworkHandler().sendToClient(new ExamplePacketOne(), player);
     }
 }

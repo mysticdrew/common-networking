@@ -15,6 +15,6 @@ public class ExampleModCommonClient
     public void onJoinWorld() {
         Dispatcher.sendToServer(new ExamplePacketOne());
         // either works fine.
-        Network.getDispatcher().sendToServer(new ExamplePacketOne());
+        Network.getNetworkHandler().sendToServer(new ExamplePacketOne());
     }
 }
