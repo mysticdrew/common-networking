@@ -14,14 +14,14 @@ This mod unifies networking in to a single location to work with Forge and Fabri
 [[dependencies.commonnetworking]]
 modId = "forge"
 mandatory = true
-versionRange = "[44,)"
+versionRange = "[45,)"
 ordering = "NONE"
 side = "BOTH"
 # Here's another dependency
 [[dependencies.commonnetworking]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.3,)"
+versionRange = "[1.19.4,)"
 ordering = "NONE"
 side = "BOTH"
 mandator = false
