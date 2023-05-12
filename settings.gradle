@@ -17,4 +17,4 @@ pluginManagement {
 }
 
 rootProject.name = 'common-networking'
-include("common", "fabric", "forge")
+include("common", "fabric"/*, "forge"*/)
