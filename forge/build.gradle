@@ -27,7 +27,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '5.1.+'
+    id 'net.minecraftforge.gradle' version '6.0.+'
 }
 
 apply plugin: 'com.matthewprenger.cursegradle'
@@ -42,7 +42,6 @@ archivesBaseName = project.base_name
 // metadata includes mapped dependencies which are not reasonably consumable by
 // other mod developers.
 tasks.withType(GenerateModuleMetadata) {
-
     enabled = false
 }
 
@@ -148,11 +147,11 @@ publishing {
             artifact jar
 
             artifact project.sourcesJar {
-                classifier 'sources'
+                archiveClassifier.set("sources")
             }
 
             artifact project.javadocJar {
-                classifier 'javadoc'
+                archiveClassifier.set("javadoc")
             }
         }
     }
