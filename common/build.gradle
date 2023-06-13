@@ -4,9 +4,9 @@ plugins {
     id 'maven-publish'
 }
 
-version = "${project.version}+${project.minecraft_version}-common"
+version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
-archivesBaseName = project.base_name
+archivesBaseName = "${project.base_name}" + "-common"
 
 minecraft {
     version(minecraft_version)

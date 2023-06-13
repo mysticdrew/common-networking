@@ -34,9 +34,9 @@ apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: "com.modrinth.minotaur"
 
 
-version = "${project.version}+${project.minecraft_version}-forge"
+version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
-archivesBaseName = project.base_name
+archivesBaseName = "${project.base_name}" + "-forge"
 
 // Disables Gradle's custom module metadata from being published to maven. The
 // metadata includes mapped dependencies which are not reasonably consumable by

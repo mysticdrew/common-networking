@@ -21,9 +21,9 @@ plugins {
 apply plugin: "com.modrinth.minotaur"
 
 
-version = "${project.version}+${project.minecraft_version}-fabric"
+version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
-archivesBaseName = project.base_name
+archivesBaseName = "${project.base_name}" + "-fabric"
 
 // Disables Gradle's custom module metadata from being published to maven. The
 // metadata includes mapped dependencies which are not reasonably consumable by
