@@ -19,7 +19,6 @@ buildscript {
 
     dependencies {
         classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
-
         classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
     }
 }
@@ -32,7 +31,6 @@ plugins {
 
 apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: "com.modrinth.minotaur"
-
 
 version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
