@@ -1,0 +1,210 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url = 'https://maven.parchmentmc.org'
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url = 'https://repo.spongepowered.org/maven'
+        }
+    }
+
+    dependencies {
+        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
+        classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
+    }
+}
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.neoforged.gradle' version '[6.0.18,6.2)'
+}
+
+apply plugin: 'com.matthewprenger.cursegradle'
+apply plugin: "com.modrinth.minotaur"
+
+version = "${project.version}-${project.minecraft_version}"
+group = project.group_id
+archivesBaseName = "${project.base_name}" + "-neoforge_version"
+
+// Disables Gradle's custom module metadata from being published to maven. The
+// metadata includes mapped dependencies which are not reasonably consumable by
+// other mod developers.
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
+}
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+    runs {
+        client {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Client'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods {
+                modClientRun {
+                    source sourceSets.main
+                    source project(":common").sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            taskName 'Server'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods {
+                modServerRun {
+                    source sourceSets.main
+                    source project(":common").sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+            ideaModule "${rootProject.name}.${project.name}.main"
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            taskName 'Data'
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            mods {
+                modDataRun {
+                    source sourceSets.main
+                    source project(":common").sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
+dependencies {
+    minecraft "net.neoforged:forge:${project.minecraft_version}-${project.neoforge_version}"
+    compileOnly project(":common")
+}
+
+tasks.withType(JavaCompile) {
+    source(project(":common").sourceSets.main.allSource)
+}
+
+processResources {
+    from project(":common").sourceSets.main.resources
+}
+
+jar {
+    dependsOn 'processDocs'
+    manifest {
+        attributes([
+                "Specification-Title"     : project.name,
+                "Specification-Vendor"    : project.group_id,
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : project.group_id,
+                "Implementation-Timestamp": getDate(),
+        ])
+    }
+}
+
+task processDocs(type: Copy) {
+    // update docs
+    from(file("../doc/")) {
+        include '*.html'
+        expand 'version': project.version,
+                'date': getDate(),
+                'mcversion': project.minecraft_version,
+                'loaderversion': project.neoforge_version,
+                'loadername': "NeoForge"
+    }
+    into 'build/doc'
+}
+
+jar.finalizedBy('reobfJar')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.archivesBaseName
+            version project.version
+            artifact jar
+
+            artifact project.sourcesJar {
+                archiveClassifier.set("sources")
+            }
+
+            artifact project.javadocJar {
+                archiveClassifier.set("javadoc")
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "CommonNetworking"
+            url = uri("https://jm.gserv.me/repository/maven-releases/")
+
+            credentials {
+                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
+                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
+            }
+        }
+    }
+}
+
+// Automated upload to CurseForge for the win!
+if (!project.hasProperty("curseForgeApiKey")) {
+    ext.curseForgeApiKey = "notset"
+}
+if (!project.hasProperty("modrinthApiKey")) {
+    ext.modrinthApiKey = "notset"
+}
+
+curseforge {
+    project {
+        id = '806044'
+        apiKey = "${curseForgeApiKey}"
+        changelogType = 'html'
+        releaseType = release_type
+        addGameVersion project.minecraft_version
+        addGameVersion 'NeoForge'
+        mainArtifact(jar) {
+            displayName = "${archivesBaseName}-${version}"
+            changelog = file('/build/doc/changelog.html')
+        }
+    }
+}
+
+
+tasks.modrinth.dependsOn(tasks.build)
+
+modrinth {
+    token = "${modrinthApiKey}"
+    projectId = "HIuqnQpi"
+    versionNumber = "${version}"
+    versionName = "${archivesBaseName}-${version}"
+    versionType = release_type
+    uploadFile = jar
+    gameVersions = ["${project.minecraft_version}"]
+    loaders = ["neoforge"]
+    changelog = file('/build/doc/changelog.html').exists() ? file('/build/doc/changelog.html').text : null
+}
+
+// Ensure build is done prior to cursegradle tasks
+project.afterEvaluate {
+    project.tasks.findAll { task ->
+        (task.name.startsWith('curseforge') || task.name.startsWith('modrinth'))
+                && (task.name != 'curseforge' || task.name != 'modrinth')
+    }.each { projectTask ->
+        projectTask.dependsOn build
+    }
+}
