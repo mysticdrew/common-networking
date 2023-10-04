@@ -126,6 +126,13 @@ publishing {
     }
 }
 
+if (!project.hasProperty("curseForgeApiKey")) {
+    ext.curseForgeApiKey = "notset"
+}
+if (!project.hasProperty("modrinthApiKey")) {
+    ext.modrinthApiKey = "notset"
+}
+
 curseforge {
     project {
         id = '806044'
