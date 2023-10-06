@@ -24,4 +24,4 @@ plugins {
 }
 
 rootProject.name = 'common-networking'
-include("common", "fabric", "forge", "neoforge")
+include("common", "fabric", "forge"/*, "neoforge"*/)
