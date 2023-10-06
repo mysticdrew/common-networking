@@ -158,5 +158,5 @@ modrinth {
     uploadFile = remapJar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["fabric", "quilt"]
-    changelog = file("$rootDir/build/doc/changelog.html").exists() ? file("$rootDir/build/doc/changelog.html").text : null
+    changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
 }

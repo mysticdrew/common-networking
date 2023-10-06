@@ -28,7 +28,7 @@ apply plugin: "com.modrinth.minotaur"
 
 version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
-archivesBaseName = "${project.base_name}" + "-neoforge_version"
+archivesBaseName = "${project.base_name}" + "-neoforge"
 
 // Disables Gradle's custom module metadata from being published to maven. The
 // metadata includes mapped dependencies which are not reasonably consumable by
@@ -192,7 +192,7 @@ modrinth {
     uploadFile = jar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["neoforge"]
-    changelog = file("$rootDir/build/doc/changelog.html").exists() ? file("$rootDir/build/doc/changelog.html").text : null
+    changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
 }
 
 // Ensure build is done prior to cursegradle tasks

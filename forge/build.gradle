@@ -196,7 +196,7 @@ modrinth {
     uploadFile = jar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["forge"]
-    changelog = file("$rootDir/build/doc/changelog.html").exists() ? file("$rootDir/build/doc/changelog.html").text : null
+    changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
 }
 
 // Ensure build is done prior to cursegradle tasks
