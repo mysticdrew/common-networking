@@ -15,7 +15,7 @@ plugins {
     id 'fabric-loom' version '1.2-SNAPSHOT'
     id 'maven-publish'
     id 'idea'
-    id 'com.matthewprenger.cursegradle' version '1.4.0'
+    id 'net.darkhax.curseforgegradle' version '1.+'
 }
 
 apply plugin: "com.modrinth.minotaur"
@@ -78,7 +78,7 @@ jar {
 
 task processDocs(type: Copy) {
     // update docs
-    from(file("../doc/")) {
+    from(file("$rootDir/doc/")) {
         include '*.html'
         expand 'version': project.version,
                 'date': getDate(),
@@ -86,7 +86,7 @@ task processDocs(type: Copy) {
                 'loaderversion': project.fabric_version,
                 'loadername': "Fabric"
     }
-    into 'build/doc'
+    into "$project.buildDir/doc"
 }
 
 processResources {
@@ -133,21 +133,19 @@ if (!project.hasProperty("modrinthApiKey")) {
     ext.modrinthApiKey = "notset"
 }
 
-curseforge {
-    project {
-        id = '806044'
-        apiKey = "${curseForgeApiKey}"
-        changelogType = 'html'
-        releaseType = release_type
-        addGameVersion project.minecraft_version
-        addGameVersion 'Fabric'
-        addGameVersion 'Quilt'
 
-        mainArtifact(remapJar) {
-            displayName = "${archivesBaseName}-${version}"
-            changelog = file('/build/doc/changelog.html')
-        }
-    }
+
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+
+    apiToken = "${curseForgeApiKey}"
+    def mainFile = upload("${curseforge_project_id}", remapJar)
+    mainFile.displayName = "${archivesBaseName}-${version}"
+    mainFile.releaseType = release_type
+    mainFile.addModLoader("Fabric", "Quilt")
+    mainFile.addJavaVersion("Java 17")
+    mainFile.addGameVersion("${project.minecraft_version}")
+    mainFile.changelogType = "html"
+    mainFile.changelog = file("$project.buildDir/doc/changelog.html")
 }
 
 

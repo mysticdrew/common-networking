@@ -18,7 +18,6 @@ buildscript {
     }
 
     dependencies {
-        classpath 'gradle.plugin.com.matthewprenger:CurseGradle:1.4.0'
         classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
     }
 }
@@ -27,6 +26,7 @@ plugins {
     id 'eclipse'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '6.0.+'
+    id 'net.darkhax.curseforgegradle' version '1.+'
 }
 
 apply plugin: 'com.matthewprenger.cursegradle'
@@ -123,7 +123,7 @@ jar {
 
 task processDocs(type: Copy) {
     // update docs
-    from(file("../doc/")) {
+    from(file("$rootDir/doc/")) {
         include '*.html'
         expand 'version': project.version,
                 'date': getDate(),
@@ -131,7 +131,7 @@ task processDocs(type: Copy) {
                 'loaderversion': project.forge_version,
                 'loadername': "Forge"
     }
-    into 'build/doc'
+    into "$project.buildDir/doc"
 }
 
 jar.finalizedBy('reobfJar')
@@ -174,20 +174,19 @@ if (!project.hasProperty("modrinthApiKey")) {
     ext.modrinthApiKey = "notset"
 }
 
-curseforge {
-    project {
-        id = '806044'
-        apiKey = "${curseForgeApiKey}"
-        changelogType = 'html'
-        releaseType = release_type
-        addGameVersion project.minecraft_version
-        mainArtifact(jar) {
-            displayName = "${archivesBaseName}-${version}"
-            changelog = file('/build/doc/changelog.html')
-        }
-    }
-}
 
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+
+    apiToken = "${curseForgeApiKey}"
+    def mainFile = upload("${curseforge_project_id}", jar)
+    mainFile.displayName = "${archivesBaseName}-${version}"
+    mainFile.releaseType = release_type
+    mainFile.addModLoader("Forge")
+    mainFile.addJavaVersion("Java 17")
+    mainFile.addGameVersion("${project.minecraft_version}")
+    mainFile.changelogType = "html"
+    mainFile.changelog = file("$project.buildDir/doc/changelog.html")
+}
 
 tasks.modrinth.dependsOn(tasks.build)
 
