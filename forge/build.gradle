@@ -166,10 +166,10 @@ publishing {
 
 // Automated upload to CurseForge for the win!
 if (!project.hasProperty("curseForgeApiKey")) {
-    ext.curseForgeApiKey = "notset"
+    ext.curseForgeApiKey = project.findProperty("curseforge_api_key") ?: "notset"
 }
 if (!project.hasProperty("modrinthApiKey")) {
-    ext.modrinthApiKey = "notset"
+    ext.modrinthApiKey = project.findProperty("modrinth_api_key") ?: "notset"
 }
 
 task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
@@ -189,14 +189,14 @@ tasks.modrinth.dependsOn(tasks.build)
 
 modrinth {
     token = "${modrinthApiKey}"
-    projectId = "HIuqnQpi"
+    projectId = modrinth_project_id
     versionNumber = "${version}"
     versionName = "${archivesBaseName}-${version}"
     versionType = release_type
     uploadFile = jar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ["forge"]
-    changelog = file('/build/doc/changelog.html').exists() ? file('/build/doc/changelog.html').text : null
+    changelog = file("$rootDir/build/doc/changelog.html").exists() ? file("$rootDir/build/doc/changelog.html").text : null
 }
 
 // Ensure build is done prior to cursegradle tasks
