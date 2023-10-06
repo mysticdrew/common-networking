@@ -133,12 +133,10 @@ if (!project.hasProperty("modrinthApiKey")) {
     ext.modrinthApiKey = "notset"
 }
 
-
-
 task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 
     apiToken = "${curseForgeApiKey}"
-    def mainFile = upload("${curseforge_project_id}", remapJar)
+    def mainFile = upload(curseforge_project_id, remapJar)
     mainFile.displayName = "${archivesBaseName}-${version}"
     mainFile.releaseType = release_type
     mainFile.addModLoader("Fabric", "Quilt")

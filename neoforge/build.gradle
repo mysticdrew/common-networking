@@ -24,7 +24,6 @@ plugins {
     id 'net.darkhax.curseforgegradle' version '1.+'
 }
 
-apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: "com.modrinth.minotaur"
 
 version = "${project.version}-${project.minecraft_version}"
@@ -169,25 +168,10 @@ if (!project.hasProperty("modrinthApiKey")) {
     ext.modrinthApiKey = "notset"
 }
 
-curseforge {
-    project {
-        id = '806044'
-        apiKey = "${curseForgeApiKey}"
-        changelogType = 'html'
-        releaseType = release_type
-        addGameVersion project.minecraft_version
-        addGameVersion 'NeoForge'
-        mainArtifact(jar) {
-            displayName = "${archivesBaseName}-${version}"
-            changelog = file('/build/doc/changelog.html')
-        }
-    }
-}
-
 task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 
     apiToken = "${curseForgeApiKey}"
-    def mainFile = upload("${curseforge_project_id}", jar)
+    def mainFile = upload(curseforge_project_id, jar)
     mainFile.displayName = "${archivesBaseName}-${version}"
     mainFile.releaseType = release_type
     mainFile.addModLoader("NeoForge")

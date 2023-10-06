@@ -28,8 +28,6 @@ plugins {
     id 'net.minecraftforge.gradle' version '6.0.+'
     id 'net.darkhax.curseforgegradle' version '1.+'
 }
-
-apply plugin: 'com.matthewprenger.cursegradle'
 apply plugin: "com.modrinth.minotaur"
 
 version = "${project.version}-${project.minecraft_version}"
@@ -174,11 +172,10 @@ if (!project.hasProperty("modrinthApiKey")) {
     ext.modrinthApiKey = "notset"
 }
 
-
 task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
 
     apiToken = "${curseForgeApiKey}"
-    def mainFile = upload("${curseforge_project_id}", jar)
+    def mainFile = upload(curseforge_project_id, jar)
     mainFile.displayName = "${archivesBaseName}-${version}"
     mainFile.releaseType = release_type
     mainFile.addModLoader("Forge")
