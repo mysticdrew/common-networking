@@ -15,9 +15,8 @@ buildscript {
 }
 plugins {
     id 'java'
-//    id 'eclipse'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '[7.0.5,)'
+    id 'net.neoforged.gradle.userdev' version '[7.0.15,)'
     id 'net.darkhax.curseforgegradle' version '1.+'
 }
 

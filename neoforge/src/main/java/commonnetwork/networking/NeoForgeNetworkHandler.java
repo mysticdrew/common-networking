@@ -6,18 +6,21 @@ import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkRegistry;
+import net.neoforged.neoforge.network.PlayNetworkDirection;
+import net.neoforged.neoforge.network.simple.MessageFunctions;
+import net.neoforged.neoforge.network.simple.SimpleChannel;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
 
 public class NeoForgeNetworkHandler extends PacketRegistrationHandler
 {
@@ -38,10 +41,18 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
                     .serverAcceptedVersions((a) -> true)
                     .networkProtocolVersion(() -> "1")
                     .simpleChannel();
-            channel.registerMessage(0, container.messageType(), container.encoder(), container.decoder(), buildHandler(container.handler()));
+            channel.registerMessage(0, container.messageType(), encoder(container.encoder()), decoder(container.decoder()), buildHandler(container.handler()));
             Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), this.side);
             CHANNELS.put(container.messageType(), channel);
         }
+    }
+
+    static <T> MessageFunctions.MessageEncoder<T> encoder(BiConsumer<T, FriendlyByteBuf> encoder) {
+        return encoder::accept;
+    }
+
+    static <T> MessageFunctions.MessageDecoder<T> decoder(Function<FriendlyByteBuf, T> decoder) {
+        return decoder::apply;
     }
 
     public <T> void sendToServer(T packet)
@@ -65,20 +76,20 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         Connection connection = player.connection.connection;
         if (channel.isRemotePresent(connection))
         {
-            channel.sendTo(packet, player.connection.connection, PLAY_TO_CLIENT);
+            channel.sendTo(packet, player.connection.connection, PlayNetworkDirection.PLAY_TO_CLIENT);
         }
     }
 
 
-    private <T> BiConsumer<T, Supplier<NetworkEvent.Context>> buildHandler(Consumer<PacketContext<T>> handler)
+    private <T> MessageFunctions.MessageConsumer<T> buildHandler(Consumer<PacketContext<T>> handler)
     {
         return (message, ctx) -> {
-            ctx.get().enqueueWork(() -> {
-                Side side = ctx.get().getDirection().getReceptionSide().isServer() ? Side.SERVER : Side.CLIENT;
-                ServerPlayer player = ctx.get().getSender();
+            ctx.enqueueWork(() -> {
+                Side side = ctx.getDirection().getReceptionSide().isServer() ? Side.SERVER : Side.CLIENT;
+                ServerPlayer player = ctx.getSender();
                 handler.accept(new PacketContext<>(player, message, side));
             });
-            ctx.get().setPacketHandled(true);
+            ctx.setPacketHandled(true);
         };
     }
 }
