@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[44,)"
+loaderVersion = "[1,)"
 license = "MIT"
 [[mods]]
 modId = "commonnetworking"
@@ -12,9 +12,9 @@ description = '''
 This mod unifies networking in to a single location to work with Forge and Fabric, so developers only need to work in the common module.
 '''
 [[dependencies.commonnetworking]]
-modId = "forge"
+modId = "neoforge"
 mandatory = true
-versionRange = "[45,)"
+versionRange = "[1,)"
 ordering = "NONE"
 side = "BOTH"
 # Here's another dependency
