@@ -65,7 +65,11 @@ dependencies {
     compileOnly project(":common")
 }
 
-tasks.withType(JavaCompile).matching {name != "neoforge"}.configureEach {
+//tasks.withType(JavaCompile).matching {name != "neoforge"}.configureEach {
+//    source(project(":common").sourceSets.main.allSource)
+//}
+
+tasks.named('compileJava', JavaCompile).configure {
     source(project(":common").sourceSets.main.allSource)
 }
 
