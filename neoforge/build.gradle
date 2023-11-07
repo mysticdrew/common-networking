@@ -14,9 +14,12 @@ buildscript {
     }
 }
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+//    id 'java'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '[7.0.15,)'
+    id 'net.neoforged.gradle.userdev' version '[7.0.26,)'
     id 'net.darkhax.curseforgegradle' version '1.+'
 }
 
@@ -62,7 +65,7 @@ dependencies {
     compileOnly project(":common")
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).matching {name != "neoforge"}.configureEach {
     source(project(":common").sourceSets.main.allSource)
 }
 
