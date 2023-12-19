@@ -60,24 +60,38 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        if (ClientPlayNetworking.canSend(message.id()) || ignoreCheck)
+        try
         {
-            FriendlyByteBuf buf = PacketByteBufs.create();
-            buf.writeByte(0); // handle forge discriminator
-            message.encoder().accept(packet, buf);
-            ClientPlayNetworking.send(message.id(), buf);
+            if (ignoreCheck || ClientPlayNetworking.canSend(message.id()))
+            {
+                FriendlyByteBuf buf = PacketByteBufs.create();
+                buf.writeByte(0); // handle forge discriminator
+                message.encoder().accept(packet, buf);
+                ClientPlayNetworking.send(message.id(), buf);
+            }
+        }
+        catch (Throwable t)
+        {
+            Constants.LOG.error("{} packet not registered on the client, this is needed for fabric.", packet.getClass(), t);
         }
     }
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        if (ServerPlayNetworking.canSend(player, message.id()))
+        try
         {
-            FriendlyByteBuf buf = PacketByteBufs.create();
-            buf.writeByte(0); // handle forge discriminator
-            message.encoder().accept(packet, buf);
-            ServerPlayNetworking.send(player, message.id(), buf);
+            if (ServerPlayNetworking.canSend(player, message.id()))
+            {
+                FriendlyByteBuf buf = PacketByteBufs.create();
+                buf.writeByte(0); // handle forge discriminator
+                message.encoder().accept(packet, buf);
+                ServerPlayNetworking.send(player, message.id(), buf);
+            }
+        }
+        catch (Throwable t)
+        {
+            Constants.LOG.error("{} packet not registered on the server, this is needed for fabric.", packet.getClass(), t);
         }
     }
 

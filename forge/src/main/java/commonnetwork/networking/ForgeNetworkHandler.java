@@ -16,9 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
 
 public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
@@ -59,9 +56,16 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
         Connection connection = Minecraft.getInstance().getConnection().getConnection();
-        if (channel.isRemotePresent(connection) || ignoreCheck)
+        try
         {
-            channel.send(packet, PacketDistributor.SERVER.noArg());
+            if (ignoreCheck || channel.isRemotePresent(connection))
+            {
+                channel.send(packet, PacketDistributor.SERVER.noArg());
+            }
+        }
+        catch (Throwable t)
+        {
+            Constants.LOG.error("{} packet not registered on the client, this is needed for fabric.", packet.getClass(), t);
         }
     }
 
@@ -69,9 +73,16 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
         Connection connection = player.connection.getConnection();
-        if (channel.isRemotePresent(connection))
+        try
         {
-            channel.send(packet, PacketDistributor.PLAYER.with(player));
+            if (channel.isRemotePresent(connection))
+            {
+                channel.send(packet, PacketDistributor.PLAYER.with(player));
+            }
+        }
+        catch (Throwable t)
+        {
+            Constants.LOG.error("{} packet not registered on the server, this is needed for fabric.", packet.getClass(), t);
         }
     }
 

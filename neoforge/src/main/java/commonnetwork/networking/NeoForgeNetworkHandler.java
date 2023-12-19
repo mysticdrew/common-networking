@@ -45,11 +45,13 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
-    static <T> MessageFunctions.MessageEncoder<T> encoder(BiConsumer<T, FriendlyByteBuf> encoder) {
+    static <T> MessageFunctions.MessageEncoder<T> encoder(BiConsumer<T, FriendlyByteBuf> encoder)
+    {
         return encoder::accept;
     }
 
-    static <T> MessageFunctions.MessageDecoder<T> decoder(Function<FriendlyByteBuf, T> decoder) {
+    static <T> MessageFunctions.MessageDecoder<T> decoder(Function<FriendlyByteBuf, T> decoder)
+    {
         return decoder::apply;
     }
 
@@ -62,9 +64,17 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
         Connection connection = Minecraft.getInstance().getConnection().getConnection();
-        if (channel.isRemotePresent(connection) || ignoreCheck)
+        try
         {
-            channel.sendToServer(packet);
+            if (ignoreCheck || channel.isRemotePresent(connection))
+            {
+                channel.sendToServer(packet);
+            }
+
+        }
+        catch (Throwable t)
+        {
+            Constants.LOG.error("{} packet not registered on the client, this is needed for fabric.", packet.getClass(), t);
         }
     }
 
@@ -72,9 +82,16 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
         Connection connection = player.connection.connection;
-        if (channel.isRemotePresent(connection))
+        try
         {
-            channel.sendTo(packet, player.connection.connection, PlayNetworkDirection.PLAY_TO_CLIENT);
+            if (channel.isRemotePresent(connection))
+            {
+                channel.sendTo(packet, player.connection.connection, PlayNetworkDirection.PLAY_TO_CLIENT);
+            }
+        }
+        catch (Throwable t)
+        {
+            Constants.LOG.error("{} packet not registered on the server, this is needed for fabric.", packet.getClass(), t);
         }
     }
 
