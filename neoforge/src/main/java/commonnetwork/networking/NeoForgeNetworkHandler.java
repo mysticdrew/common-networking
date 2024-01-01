@@ -4,55 +4,70 @@ import commonnetwork.Constants;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.NetworkRegistry;
-import net.neoforged.neoforge.network.PlayNetworkDirection;
-import net.neoforged.neoforge.network.simple.MessageFunctions;
-import net.neoforged.neoforge.network.simple.SimpleChannel;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.LogicalSide;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
+import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 
 public class NeoForgeNetworkHandler extends PacketRegistrationHandler
 {
-    private final Map<Class<?>, SimpleChannel> CHANNELS = new HashMap<>();
+
+
+    private final Map<Class<?>, NeoForgePacketContainer> PACKETS = new HashMap<>();
 
     public NeoForgeNetworkHandler(Side side)
     {
         super(side);
     }
 
-    protected <T> void registerPacket(PacketContainer<T> container)
+    @SubscribeEvent
+    public void register(final RegisterPayloadHandlerEvent event)
     {
-        if (CHANNELS.get(container.messageType()) == null)
+        if (!PACKETS.isEmpty())
         {
-            SimpleChannel channel = NetworkRegistry.ChannelBuilder
-                    .named(container.packetIdentifier())
-                    .clientAcceptedVersions((a) -> true)
-                    .serverAcceptedVersions((a) -> true)
-                    .networkProtocolVersion(() -> "1")
-                    .simpleChannel();
-            channel.registerMessage(0, container.messageType(), encoder(container.encoder()), decoder(container.decoder()), buildHandler(container.handler()));
-            Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), this.side);
-            CHANNELS.put(container.messageType(), channel);
+            PACKETS.forEach((type, container) -> {
+                final IPayloadRegistrar registrar = event.registrar(container.packetIdentifier().getNamespace());
+                registrar.common(
+                        container.packetIdentifier(),
+                        container.decoder(),
+                        container.handler());
+            });
         }
     }
 
-    static <T> MessageFunctions.MessageEncoder<T> encoder(BiConsumer<T, FriendlyByteBuf> encoder)
+    protected <T> void registerPacket(PacketContainer<T> container)
     {
-        return encoder::accept;
+        if (PACKETS.get(container.messageType()) == null)
+        {
+            var packetContainer = new NeoForgePacketContainer<>(
+                    container.messageType(),
+                    container.packetIdentifier(),
+                    container.encoder(),
+                    decoder(container.decoder()),
+                    buildHandler(container.handler())
+            );
+
+            PACKETS.put(container.messageType(), packetContainer);
+        }
     }
 
-    static <T> MessageFunctions.MessageDecoder<T> decoder(Function<FriendlyByteBuf, T> decoder)
+    private <T> FriendlyByteBuf.Reader<NeoForgePacket<T>> decoder(Function<FriendlyByteBuf, T> decoder)
     {
-        return decoder::apply;
+        return (buf -> {
+            T packet = decoder.apply(buf);
+            return new NeoForgePacket<T>(PACKETS.get(packet.getClass()), packet);
+        });
     }
 
     public <T> void sendToServer(T packet)
@@ -62,49 +77,48 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
 
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
-        SimpleChannel channel = CHANNELS.get(packet.getClass());
-        Connection connection = Minecraft.getInstance().getConnection().getConnection();
+        NeoForgePacketContainer<T> container = PACKETS.get(packet.getClass());
         try
         {
-            if (ignoreCheck || channel.isRemotePresent(connection))
-            {
-                channel.sendToServer(packet);
-            }
+            PacketDistributor.SERVER.noArg().send(new NeoForgePacket<>(container, packet));
 
         }
         catch (Throwable t)
         {
-            Constants.LOG.error("{} packet not registered on the client, this is needed for fabric.", packet.getClass(), t);
+            Constants.LOG.error("{} packet not registered on the client, this is needed.", packet.getClass(), t);
         }
     }
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
-        SimpleChannel channel = CHANNELS.get(packet.getClass());
-        Connection connection = player.connection.connection;
+        NeoForgePacketContainer<T> container = PACKETS.get(packet.getClass());
         try
         {
-            if (channel.isRemotePresent(connection))
+            if (player.connection.isConnected(container.packetIdentifier()))
             {
-                channel.sendTo(packet, player.connection.connection, PlayNetworkDirection.PLAY_TO_CLIENT);
+                PacketDistributor.PLAYER.with(player).send(new NeoForgePacket<>(container, packet));
             }
         }
         catch (Throwable t)
         {
-            Constants.LOG.error("{} packet not registered on the server, this is needed for fabric.", packet.getClass(), t);
+            Constants.LOG.error("{} packet not registered on the server, this is needed.", packet.getClass(), t);
         }
     }
 
-
-    private <T> MessageFunctions.MessageConsumer<T> buildHandler(Consumer<PacketContext<T>> handler)
+    private <T, K extends
+            NeoForgePacket<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
     {
-        return (message, ctx) -> {
-            ctx.enqueueWork(() -> {
-                Side side = ctx.getDirection().getReceptionSide().isServer() ? Side.SERVER : Side.CLIENT;
-                ServerPlayer player = ctx.getSender();
-                handler.accept(new PacketContext<>(player, message, side));
-            });
-            ctx.setPacketHandled(true);
+        return (payload, ctx) -> {
+            try
+            {
+                Side side = ctx.flow().getReceptionSide().equals(LogicalSide.SERVER) ? Side.SERVER : Side.CLIENT;
+                Player player = ctx.player().orElse(null);
+                handler.accept(new PacketContext<>(player, payload.packet(), side));
+            }
+            catch (Throwable t)
+            {
+                Constants.LOG.error("Error handling packet: {} -> ", payload.packet().getClass(), t);
+            }
         };
     }
 }
