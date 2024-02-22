@@ -62,7 +62,8 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
         try
         {
-            if (ignoreCheck || ClientPlayNetworking.canSend(message.id()))
+            // This check no longer works for forge or neoforge
+//            if (ignoreCheck || ClientPlayNetworking.canSend(message.id()))
             {
                 FriendlyByteBuf buf = PacketByteBufs.create();
                 buf.writeByte(0); // handle forge discriminator
@@ -81,7 +82,8 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
         try
         {
-            if (ServerPlayNetworking.canSend(player, message.id()))
+            // This check no longer works for forge or neoforge
+//            if (ServerPlayNetworking.canSend(player, message.id()))
             {
                 FriendlyByteBuf buf = PacketByteBufs.create();
                 buf.writeByte(0); // handle forge discriminator

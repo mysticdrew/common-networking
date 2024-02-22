@@ -16,6 +16,7 @@ import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -37,8 +38,9 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         if (!PACKETS.isEmpty())
         {
             PACKETS.forEach((type, container) -> {
+                System.out.println("Packet Registration :"+ type.toGenericString());
                 final IPayloadRegistrar registrar = event.registrar(container.packetIdentifier().getNamespace());
-                registrar.common(
+                registrar.optional().common(
                         container.packetIdentifier(),
                         container.decoder(),
                         container.handler());
@@ -53,7 +55,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
             var packetContainer = new NeoForgePacketContainer<>(
                     container.messageType(),
                     container.packetIdentifier(),
-                    container.encoder(),
+                    encoder(container.encoder()),
                     decoder(container.decoder()),
                     buildHandler(container.handler())
             );
@@ -62,9 +64,18 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
+    private <T> BiConsumer<T, FriendlyByteBuf> encoder(BiConsumer<T, FriendlyByteBuf> encoder)
+    {
+        return (e, c) -> {
+            c.writeByte(0);
+            encoder.accept(e, c);
+        };
+    }
+
     private <T> FriendlyByteBuf.Reader<NeoForgePacket<T>> decoder(Function<FriendlyByteBuf, T> decoder)
     {
         return (buf -> {
+            buf.readByte();
             T packet = decoder.apply(buf);
             return new NeoForgePacket<T>(PACKETS.get(packet.getClass()), packet);
         });
@@ -96,6 +107,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         {
             if (player.connection.isConnected(container.packetIdentifier()))
             {
+
                 PacketDistributor.PLAYER.with(player).send(new NeoForgePacket<>(container, packet));
             }
         }

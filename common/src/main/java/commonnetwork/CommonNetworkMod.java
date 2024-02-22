@@ -1,9 +1,11 @@
 package commonnetwork;
 
+import commonnetwork.api.Network;
 import commonnetwork.networking.DelayedPacketRegistrationHandler;
 import commonnetwork.networking.PacketRegistrar;
 import commonnetwork.networking.PacketRegistrationHandler;
 import commonnetwork.networking.data.PacketContext;
+import commonnetwork.test.ExamplePacketOne;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
@@ -22,6 +24,8 @@ public class CommonNetworkMod
         INSTANCE = this;
         this.packetRegistration = packetRegistration;
         getDelayedHandler().registerQueuedPackets(packetRegistration);
+        Network
+                .registerPacket(ExamplePacketOne.CHANNEL, ExamplePacketOne.class, ExamplePacketOne::encode, ExamplePacketOne::decode, ExamplePacketOne::handle);
     }
 
     /**

@@ -58,7 +58,8 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         Connection connection = Minecraft.getInstance().getConnection().getConnection();
         try
         {
-            if (ignoreCheck || channel.isRemotePresent(connection))
+            // This check no longer works for fabric or neoforge
+//            if (ignoreCheck || channel.isRemotePresent(connection))
             {
                 channel.send(packet, PacketDistributor.SERVER.noArg());
             }
@@ -75,7 +76,8 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         Connection connection = player.connection.getConnection();
         try
         {
-            if (channel.isRemotePresent(connection))
+            // This check no longer works for fabric or neoforge
+//            if (channel.isRemotePresent(connection))
             {
                 channel.send(packet, PacketDistributor.PLAYER.with(player));
             }
