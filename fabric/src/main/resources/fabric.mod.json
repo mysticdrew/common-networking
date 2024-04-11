@@ -16,9 +16,6 @@
   "entrypoints": {
     "main": [
       "commonnetwork.CommonNetworkFabric"
-    ],
-    "client": [
-      "commonnetwork.CommonNetworkFabric"
     ]
   },
   "custom": {
