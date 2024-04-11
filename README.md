@@ -20,15 +20,19 @@ repositories {
 }
 Fabric:
 dependencies {
-    modImplementation 'mysticdrew:common-networking-fabric:1.0.1-1.20.1'
+    modImplementation 'mysticdrew:common-networking-fabric:1.0.5-1.20.1'
 }
 Forge:
 dependencies {
-    implementation fg.deobf('mysticdrew:common-networking-forge:1.0.1-1.20.1')
+    implementation fg.deobf('mysticdrew:common-networking-forge:1.0.5-1.20.1')
+}
+NeoForge:
+dependencies {
+    implementation fg.deobf('mysticdrew:common-networking-neoforge:1.0.5-1.20.1')
 }
 Common:
 dependencies {
-    implementation 'mysticdrew:common-networking-common:1.0.1-1.20.1'
+    implementation 'mysticdrew:common-networking-common:1.0.5-1.20.1'
 }
 ```
 ### How to Use:
