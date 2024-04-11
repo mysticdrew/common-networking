@@ -4,6 +4,7 @@ import commonnetwork.Constants;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import commonnetwork.networking.exceptions.RegistrationException;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -60,38 +61,36 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        try
+        if (message != null)
         {
             if (ignoreCheck || ClientPlayNetworking.canSend(message.id()))
             {
                 FriendlyByteBuf buf = PacketByteBufs.create();
-                buf.writeByte(0); // handle forge discriminator
                 message.encoder().accept(packet, buf);
                 ClientPlayNetworking.send(message.id(), buf);
             }
         }
-        catch (Throwable t)
+        else
         {
-            Constants.LOG.error("{} packet not registered on the client, this is needed for fabric.", packet.getClass(), t);
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered don both sides!");
         }
     }
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
         Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        try
+        if (message != null)
         {
             if (ServerPlayNetworking.canSend(player, message.id()))
             {
                 FriendlyByteBuf buf = PacketByteBufs.create();
-                buf.writeByte(0); // handle forge discriminator
                 message.encoder().accept(packet, buf);
                 ServerPlayNetworking.send(player, message.id(), buf);
             }
         }
-        catch (Throwable t)
+        else
         {
-            Constants.LOG.error("{} packet not registered on the server, this is needed for fabric.", packet.getClass(), t);
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered don both sides!");
         }
     }
 

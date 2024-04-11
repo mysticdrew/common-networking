@@ -1,8 +1,8 @@
 package commonnetwork.networking.data;
 
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 
-public record PacketContext<T>(Player sender, T message, Side side)
+public record PacketContext<T>(ServerPlayer sender, T message, Side side)
 {
     public PacketContext(T message, Side side)
     {

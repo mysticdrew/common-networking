@@ -14,7 +14,7 @@ public class Network
 {
     /**
      * Packet Registration
-     *
+     * @deprecated This will likely be removed with the 1.20.5 update due to changes in vanilla and modloader networking.
      * @param packetIdentifier - The unique {@link ResourceLocation} packet id.
      * @param messageType      - The class of the packet.
      * @param encoder          - The encoder method.
@@ -23,6 +23,7 @@ public class Network
      * @param <T>              - The type
      * @return The registrar for chaining registrations.
      */
+    @Deprecated
     public static <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         return CommonNetworkMod.registerPacket(packetIdentifier, messageType, encoder, decoder, handler);
