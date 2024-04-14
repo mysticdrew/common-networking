@@ -3,9 +3,11 @@ package commonnetwork;
 import commonnetwork.networking.FabricNetworkHandler;
 import commonnetwork.networking.data.Side;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 
-public class CommonNetworkFabric implements ModInitializer, ClientModInitializer
+public class CommonNetworkFabric implements ModInitializer
 {
 
     public CommonNetworkFabric()
@@ -15,14 +17,8 @@ public class CommonNetworkFabric implements ModInitializer, ClientModInitializer
     @Override
     public void onInitialize()
     {
-
-        new CommonNetworkMod(new FabricNetworkHandler(Side.SERVER));
-
+        var env = FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT) ? Side.CLIENT : Side.SERVER;
+        new CommonNetworkMod(new FabricNetworkHandler(env));
     }
 
-    @Override
-    public void onInitializeClient()
-    {
-        new CommonNetworkMod(new FabricNetworkHandler(Side.CLIENT));
-    }
 }
