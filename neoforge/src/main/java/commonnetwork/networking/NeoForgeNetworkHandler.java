@@ -4,6 +4,7 @@ import commonnetwork.Constants;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,20 +53,35 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
-        Connection connection = Minecraft.getInstance().getConnection().getConnection();
-        if (channel.isRemotePresent(connection) || ignoreCheck)
+        if (channel != null)
         {
-            channel.sendToServer(packet);
+            Connection connection = Minecraft.getInstance().getConnection().getConnection();
+            if (channel.isRemotePresent(connection) || ignoreCheck)
+            {
+                channel.sendToServer(packet);
+            }
+
+        }
+        else
+        {
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered don both sides!");
         }
     }
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
-        Connection connection = player.connection.connection;
-        if (channel.isRemotePresent(connection))
+        if (channel != null)
         {
-            channel.sendTo(packet, player.connection.connection, PLAY_TO_CLIENT);
+            Connection connection = player.connection.connection;
+            if (channel.isRemotePresent(connection))
+            {
+                channel.sendTo(packet, player.connection.connection, PLAY_TO_CLIENT);
+            }
+        }
+        else
+        {
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered don both sides!");
         }
     }
 
