@@ -9,9 +9,9 @@ public record NeoForgePacket<T>(NeoForgePacketContainer<T> container, T packet) 
 
 
     @Override
-    public void write(FriendlyByteBuf buff)
+    public void write(FriendlyByteBuf buf)
     {
-        container().encoder().accept(packet(), buff);
+        container().encoder().accept(packet(), buf);
     }
 
     @Override

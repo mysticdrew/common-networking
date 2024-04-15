@@ -48,17 +48,17 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
 
     protected <T> void registerPacket(PacketContainer<T> container)
     {
-        if (PACKETS.get(container.messageType()) == null)
+        if (PACKETS.get(container.packetClass()) == null)
         {
             var packetContainer = new NeoForgePacketContainer<>(
-                    container.messageType(),
+                    container.packetClass(),
                     container.packetIdentifier(),
                     container.encoder(),
                     decoder(container.decoder()),
                     buildHandler(container.handler())
             );
 
-            PACKETS.put(container.messageType(), packetContainer);
+            PACKETS.put(container.packetClass(), packetContainer);
         }
     }
 
@@ -104,8 +104,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
-    private <T, K extends
-            NeoForgePacket<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
+    private <T, K extends NeoForgePacket<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
     {
         return (payload, ctx) -> {
             try

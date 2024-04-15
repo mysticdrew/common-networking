@@ -38,15 +38,15 @@ public class CommonNetworkMod
         return delayedHandler;
     }
 
-    public static <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
+    public static <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         if (INSTANCE != null)
         {
-            return INSTANCE.packetRegistration.registerPacket(packetIdentifier, messageType, encoder, decoder, handler);
+            return INSTANCE.packetRegistration.registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);
         }
         else
         {
-            return getDelayedHandler().registerPacket(packetIdentifier, messageType, encoder, decoder, handler);
+            return getDelayedHandler().registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);
         }
     }
 

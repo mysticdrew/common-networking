@@ -27,12 +27,13 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
     protected <T> void registerPacket(PacketContainer<T> container)
     {
-        if (CHANNELS.get(container.messageType()) == null)
+        if (CHANNELS.get(container.packetClass()) == null)
         {
-            CHANNELS.put(container.messageType(), new Message<>(container.packetIdentifier(), container.encoder()));
+            CHANNELS.put(container.packetClass(), new Message<>(container.packetIdentifier(), container.encoder()));
             if (Side.CLIENT.equals(this.side))
             {
-                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.CLIENT);
+                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.packetClass(), Side.CLIENT);
+
 
                 ClientPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((client, listener, buf, responseSender) -> {
                     buf.readByte(); // handle forge discriminator
@@ -42,7 +43,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             }
             else
             {
-                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.SERVER);
+                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.packetClass(), Side.SERVER);
 
                 ServerPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((server, player, listener, buf, responseSender) -> {
                     buf.readByte(); // handle forge discriminator
