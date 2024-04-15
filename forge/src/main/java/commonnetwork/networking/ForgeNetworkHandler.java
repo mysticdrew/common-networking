@@ -17,9 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
 
 public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
@@ -34,7 +31,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     {
         if (CHANNELS.get(container.messageType()) == null)
         {
-            SimpleChannel channel = NetworkRegistry.ChannelBuilder
+            SimpleChannel channel = ChannelBuilder
                     .named(container.packetIdentifier())
                     .clientAcceptedVersions((a, b) -> true)
                     .serverAcceptedVersions((a, b) -> true)
@@ -79,7 +76,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         SimpleChannel channel = CHANNELS.get(packet.getClass());
         if (channel != null)
         {
-            Connection connection = player.connection.connection;
+            Connection connection = player.connection.getConnection();
             if (channel.isRemotePresent(connection))
             {
                 channel.send(packet, PacketDistributor.PLAYER.with(player));
