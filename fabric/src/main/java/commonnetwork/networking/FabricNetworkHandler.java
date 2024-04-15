@@ -1,24 +1,18 @@
 package commonnetwork.networking;
 
 import commonnetwork.Constants;
+import commonnetwork.networking.data.CommonPacketWrapper;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.BiConsumer;
 
 public class FabricNetworkHandler extends PacketRegistrationHandler
 {
-    private final Map<Class<?>, Message<?>> CHANNELS = new HashMap<>();
 
     public FabricNetworkHandler(Side side)
     {
@@ -27,29 +21,27 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
     protected <T> void registerPacket(PacketContainer<T> container)
     {
-        if (CHANNELS.get(container.packetClass()) == null)
+        if (PACKET_MAP.get(container.classType()) == null)
         {
-            CHANNELS.put(container.packetClass(), new Message<>(container.packetIdentifier(), container.encoder()));
             if (Side.CLIENT.equals(this.side))
             {
-                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.packetClass(), Side.CLIENT);
+                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.CLIENT);
 
-
-                ClientPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((client, listener, buf, responseSender) -> {
-                    buf.readByte(); // handle forge discriminator
-                    T message = container.decoder().apply(buf);
-                    client.execute(() -> container.handler().accept(new PacketContext<>(message, Side.CLIENT)));
-                }));
+                PayloadTypeRegistry.playS2C().register(container.getType(), container.getCodec());
+                ClientPlayNetworking.registerGlobalReceiver(container.getType(),
+                        (ClientPlayNetworking.PlayPayloadHandler<?>) (payload, context) -> context.client().execute(() ->
+                                container.handler().accept(
+                                        new PacketContext<>(((CommonPacketWrapper<T>) payload).packet(), side))));
             }
             else
             {
-                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.packetClass(), Side.SERVER);
+                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.SERVER);
 
-                ServerPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((server, player, listener, buf, responseSender) -> {
-                    buf.readByte(); // handle forge discriminator
-                    T message = container.decoder().apply(buf);
-                    server.execute(() -> container.handler().accept(new PacketContext<>(player, message, Side.SERVER)));
-                }));
+                PayloadTypeRegistry.playC2S().register(container.getType(), container.getCodec());
+                ServerPlayNetworking.registerGlobalReceiver(container.getType(),
+                        (ServerPlayNetworking.PlayPayloadHandler<?>) (payload, context) -> context.player().server.execute(() ->
+                                container.handler().accept(
+                                        new PacketContext<>(context.player(), ((CommonPacketWrapper<T>) payload).packet(), side))));
             }
         }
     }
@@ -61,14 +53,12 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
-        Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        if (message != null)
+        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+        if (container != null)
         {
-            if (ignoreCheck || ClientPlayNetworking.canSend(message.id()))
+            if (ignoreCheck || ClientPlayNetworking.canSend(container.type().id()))
             {
-                FriendlyByteBuf buf = PacketByteBufs.create();
-                message.encoder().accept(packet, buf);
-                ClientPlayNetworking.send(message.id(), buf);
+                ClientPlayNetworking.send(new CommonPacketWrapper<>(container, packet));
             }
         }
         else
@@ -79,23 +69,17 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
-        Message<T> message = (Message<T>) CHANNELS.get(packet.getClass());
-        if (message != null)
+        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+        if (container != null)
         {
-            if (ServerPlayNetworking.canSend(player, message.id()))
+            if (ServerPlayNetworking.canSend(player, container.type().id()))
             {
-                FriendlyByteBuf buf = PacketByteBufs.create();
-                message.encoder().accept(packet, buf);
-                ServerPlayNetworking.send(player, message.id(), buf);
+                ServerPlayNetworking.send(player, new CommonPacketWrapper<>(container, packet));
             }
         }
         else
         {
             throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered don both sides!");
         }
-    }
-
-    public record Message<T>(ResourceLocation id, BiConsumer<T, FriendlyByteBuf> encoder)
-    {
     }
 }
