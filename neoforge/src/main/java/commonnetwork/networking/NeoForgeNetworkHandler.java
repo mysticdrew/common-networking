@@ -84,7 +84,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
         else
         {
-            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered don both sides!");
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered on both sides!");
         }
     }
 
@@ -100,7 +100,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
         else
         {
-            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered don both sides!");
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered on both sides!");
         }
     }
 

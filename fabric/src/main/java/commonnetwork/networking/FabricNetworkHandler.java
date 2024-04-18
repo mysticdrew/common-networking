@@ -19,6 +19,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         super(side);
     }
 
+    @SuppressWarnings("unchecked")
     protected <T> void registerPacket(PacketContainer<T> container)
     {
         if (PACKET_MAP.get(container.classType()) == null)
@@ -29,9 +30,9 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
                 PayloadTypeRegistry.playS2C().register(container.getType(), container.getCodec());
                 ClientPlayNetworking.registerGlobalReceiver(container.getType(),
-                        (ClientPlayNetworking.PlayPayloadHandler<?>) (payload, context) -> context.client().execute(() ->
+                        (ClientPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
                                 container.handler().accept(
-                                        new PacketContext<>(((CommonPacketWrapper<T>) payload).packet(), side))));
+                                        new PacketContext<>(payload.packet(), side))));
             }
             else
             {
@@ -39,9 +40,9 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
                 PayloadTypeRegistry.playC2S().register(container.getType(), container.getCodec());
                 ServerPlayNetworking.registerGlobalReceiver(container.getType(),
-                        (ServerPlayNetworking.PlayPayloadHandler<?>) (payload, context) -> context.player().server.execute(() ->
+                        (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.player().server.execute(() ->
                                 container.handler().accept(
-                                        new PacketContext<>(context.player(), ((CommonPacketWrapper<T>) payload).packet(), side))));
+                                        new PacketContext<>(context.player(), payload.packet(), side))));
             }
         }
     }
@@ -51,6 +52,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         this.sendToServer(packet, false);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
@@ -63,10 +65,11 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         }
         else
         {
-            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered don both sides!");
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered on both sides!");
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
@@ -79,7 +82,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         }
         else
         {
-            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered don both sides!");
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered on both sides!");
         }
     }
 }

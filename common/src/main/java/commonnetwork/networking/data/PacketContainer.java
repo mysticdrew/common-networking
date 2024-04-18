@@ -24,6 +24,7 @@ public record PacketContainer<T>(CustomPacketPayload.Type<? extends CustomPacket
         this(new CustomPacketPayload.Type<>(id), classType, encoder, decoder, handle);
     }
 
+    @SuppressWarnings("unchecked")
     public <K extends CustomPacketPayload> CustomPacketPayload.Type<K> getType()
     {
         return (CustomPacketPayload.Type<K>) type();
@@ -33,6 +34,6 @@ public record PacketContainer<T>(CustomPacketPayload.Type<? extends CustomPacket
     {
         return CustomPacketPayload.codec(
                 (packet, buf) -> this.encoder().accept(packet.packet(), buf),
-                (buf) -> new CommonPacketWrapper(this, this.decoder().apply(buf)));
+                (buf) -> new CommonPacketWrapper<>(this, this.decoder().apply(buf)));
     }
 }
