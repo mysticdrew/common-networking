@@ -38,6 +38,14 @@ subprojects {
             name = 'BlameJared Maven (CrT / Bookshelf)'
             url = 'https://maven.blamejared.com'
         }
+        maven {
+            name 'Maven for PR #794' // https://github.com/neoforged/NeoForge/pull/794
+            url 'https://prmaven.neoforged.net/NeoForge/pr794'
+            content {
+                includeModule('net.neoforged', 'testframework')
+                includeModule('net.neoforged', 'neoforge')
+            }
+        }
     }
 
     tasks.withType(JavaCompile).configureEach {

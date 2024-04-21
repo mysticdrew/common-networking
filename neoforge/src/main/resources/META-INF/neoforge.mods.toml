@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[1,)"
+loaderVersion = "[2,)"
 license = "MIT"
 [[mods]]
 modId = "commonnetworking"
@@ -21,7 +21,7 @@ side = "BOTH"
 [[dependencies.commonnetworking]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.20.4,)"
+versionRange = "[1.20.5,)"
 ordering = "NONE"
 side = "BOTH"
 mandator = false

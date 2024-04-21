@@ -30,10 +30,10 @@ public record PacketContainer<T>(CustomPacketPayload.Type<? extends CustomPacket
         return (CustomPacketPayload.Type<K>) type();
     }
 
-    public StreamCodec<FriendlyByteBuf, CommonPacketWrapper<T>> getCodec()
+    public StreamCodec<FriendlyByteBuf, CommonPacketWrapper> getCodec()
     {
         return CustomPacketPayload.codec(
-                (packet, buf) -> this.encoder().accept(packet.packet(), buf),
+                (packet, buf) -> this.encoder().accept((T)packet.packet(), buf),
                 (buf) -> new CommonPacketWrapper<>(this, this.decoder().apply(buf)));
     }
 }
