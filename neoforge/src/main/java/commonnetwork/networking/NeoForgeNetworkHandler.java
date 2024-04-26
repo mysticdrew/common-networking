@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
 import java.util.function.Consumer;
@@ -33,12 +33,12 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
 
     @SubscribeEvent
     @SuppressWarnings("unchecked")
-    public void register(final RegisterPayloadHandlerEvent event)
+    public void register(final RegisterPayloadHandlersEvent event)
     {
         if (!PACKET_MAP.isEmpty())
         {
             PACKET_MAP.forEach((type, container) -> event.registrar(container.getType().id().getNamespace())
-                    .optional().common(container.getType(), container.getCodec(), buildHandler(container.handler())));
+                    .optional().commonBidirectional(container.getType(), container.getCodec(), buildHandler(container.handler())));
         }
     }
 
@@ -53,7 +53,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
-            PacketDistributor.SERVER.noArg().send(new CommonPacketWrapper<>(container, packet));
+            PacketDistributor.sendToServer(new CommonPacketWrapper<>(container, packet));
         }
         else
         {
@@ -67,9 +67,9 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
-            if (player.connection.isConnected(container.type()))
+            if (player.connection.hasChannel(container.type()))
             {
-                PacketDistributor.PLAYER.with(player).send(new CommonPacketWrapper<>(container, packet));
+                PacketDistributor.sendToPlayer(player, new CommonPacketWrapper<>(container, packet));
             }
         }
         else
@@ -87,7 +87,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
                 Side side = ctx.flow().getReceptionSide().equals(LogicalSide.SERVER) ? Side.SERVER : Side.CLIENT;
                 if (Side.SERVER.equals(side))
                 {
-                    handler.accept(new PacketContext<>((ServerPlayer) ctx.player().get(), payload.packet(), side));
+                    handler.accept(new PacketContext<>((ServerPlayer) ctx.player(), payload.packet(), side));
                 }
                 else
                 {
