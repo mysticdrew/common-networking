@@ -134,8 +134,6 @@ task processDocs(type: Copy) {
     into "$project.buildDir/doc"
 }
 
-jar.finalizedBy('reobfJar')
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
