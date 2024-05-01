@@ -25,7 +25,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '6.0.+'
+    id 'net.minecraftforge.gradle' version '6.0.23+'
     id 'net.darkhax.curseforgegradle' version '1.+'
 }
 apply plugin: "com.modrinth.minotaur"
@@ -40,6 +40,8 @@ archivesBaseName = "${project.base_name}" + "-forge"
 tasks.withType(GenerateModuleMetadata) {
     enabled = false
 }
+
+minecraft.reobf = false
 
 minecraft {
     mappings channel: 'official', version: minecraft_version
@@ -132,8 +134,6 @@ task processDocs(type: Copy) {
     into "$project.buildDir/doc"
 }
 
-jar.finalizedBy('reobfJar')
-
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -179,7 +179,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
     mainFile.displayName = "${archivesBaseName}-${version}"
     mainFile.releaseType = release_type
     mainFile.addModLoader("Forge")
-    mainFile.addJavaVersion("Java 17")
+    mainFile.addJavaVersion("Java 21")
     mainFile.addGameVersion("${project.minecraft_version}")
     mainFile.changelogType = "html"
     mainFile.changelog = file("$project.buildDir/doc/changelog.html")
