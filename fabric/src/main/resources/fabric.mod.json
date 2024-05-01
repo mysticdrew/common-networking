@@ -23,7 +23,8 @@
       "links": {
         "modmenu.discord": "https://discord.gg/eP8gE69",
         "github": "https://github.com/mysticdrew/common-networking"
-      }
+      },
+      "badges": [ "library" ]
     }
   },
   "depends": {
