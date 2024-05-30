@@ -66,6 +66,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             if (ignoreCheck || ClientPlayNetworking.canSend(message.id()))
             {
                 FriendlyByteBuf buf = PacketByteBufs.create();
+                buf.writeByte(0);
                 message.encoder().accept(packet, buf);
                 ClientPlayNetworking.send(message.id(), buf);
             }
@@ -84,6 +85,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             if (ServerPlayNetworking.canSend(player, message.id()))
             {
                 FriendlyByteBuf buf = PacketByteBufs.create();
+                buf.writeByte(0);
                 message.encoder().accept(packet, buf);
                 ServerPlayNetworking.send(player, message.id(), buf);
             }
