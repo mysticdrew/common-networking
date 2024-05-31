@@ -2,7 +2,6 @@ package commonnetwork;
 
 import commonnetwork.networking.FabricNetworkHandler;
 import commonnetwork.networking.data.Side;
-import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
