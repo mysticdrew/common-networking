@@ -3,7 +3,7 @@ plugins {
 }
 subprojects {
     apply plugin: 'java'
-
+    apply plugin: 'maven-publish'
     java.toolchain.languageVersion = JavaLanguageVersion.of(21)
     java.withSourcesJar()
     java.withJavadocJar()

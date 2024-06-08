@@ -46,7 +46,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         ServerPlayNetworking.registerGlobalReceiver(container.getType(),
                 (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.player().server.execute(() ->
                         container.handler().accept(
-                                new PacketContext<>(context.player(), payload.packet(), side))));
+                                new PacketContext<>(context.player(), payload.packet(), Side.SERVER))));
 
     }
 
