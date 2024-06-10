@@ -93,17 +93,19 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
 
     private <T> BiConsumer<T, CustomPayloadEvent.Context> buildHandler(Consumer<PacketContext<T>> handler)
     {
-        return (message, ctx) -> ctx.enqueueWork(() -> {
+        return (message, ctx) -> {
             try
             {
                 Side side = ctx.isServerSide() ? Side.SERVER : Side.CLIENT;
                 ServerPlayer player = ctx.getSender();
                 handler.accept(new PacketContext<>(player, message, side));
                 ctx.setPacketHandled(true);
-            } catch (Throwable t) {
+            }
+            catch (Throwable t)
+            {
                 Constants.LOG.error("{} error handling packet", message.getClass(), t);
             }
-        });
+        };
     }
 
     public record Message<T>(EventNetworkChannel channel, BiConsumer<T, FriendlyByteBuf> encoder)
