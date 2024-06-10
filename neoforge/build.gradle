@@ -17,7 +17,7 @@ plugins {
     id 'java-library'
     id 'eclipse'
     id 'idea'
-//    id 'java'
+    id 'java'
     id 'maven-publish'
     id 'net.neoforged.gradle.userdev' version '[7.0.105,)'
     id 'net.darkhax.curseforgegradle' version '1.+'
