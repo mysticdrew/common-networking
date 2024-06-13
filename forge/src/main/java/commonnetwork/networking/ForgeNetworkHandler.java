@@ -17,7 +17,6 @@ import net.minecraftforge.network.EventNetworkChannel;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
@@ -35,7 +34,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
             var channel = ChannelBuilder.named(container.packetIdentifier()).optional().eventNetworkChannel()
                     .addListener(event -> {
                         T message = container.decoder().apply(event.getPayload());
-                        buildHandler(container.handler()).accept(message, event.getSource());
+                        buildHandler(container).accept(message, event.getSource());
                     });
             CHANNELS.put(container.messageType(), new Message<>(channel, container.encoder()));
         }
@@ -91,19 +90,31 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     }
 
 
-    private <T> BiConsumer<T, CustomPayloadEvent.Context> buildHandler(Consumer<PacketContext<T>> handler)
+    private <T> BiConsumer<T, CustomPayloadEvent.Context> buildHandler(PacketContainer<T> container)
     {
-        return (message, ctx) -> ctx.enqueueWork(() -> {
+        return (message, ctx) -> {
             try
             {
                 Side side = ctx.isServerSide() ? Side.SERVER : Side.CLIENT;
                 ServerPlayer player = ctx.getSender();
-                handler.accept(new PacketContext<>(player, message, side));
-                ctx.setPacketHandled(true);
-            } catch (Throwable t) {
+                if (container.handleOnNetworkThread())
+                {
+                    container.handler().accept(new PacketContext<>(player, message, side));
+                    ctx.setPacketHandled(true);
+                }
+                else
+                {
+                    ctx.enqueueWork(() -> {
+                        container.handler().accept(new PacketContext<>(player, message, side));
+                        ctx.setPacketHandled(true);
+                    });
+                }
+            }
+            catch (Throwable t)
+            {
                 Constants.LOG.error("{} error handling packet", message.getClass(), t);
             }
-        });
+        };
     }
 
     public record Message<T>(EventNetworkChannel channel, BiConsumer<T, FriendlyByteBuf> encoder)

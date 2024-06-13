@@ -30,9 +30,38 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
         this.side = side;
     }
 
+    /**
+     * Register packet.
+     * Defaults handling the packet on the main thread.
+     *
+     * @param packetIdentifier - the packet identifier
+     * @param messageType      - the messageType
+     * @param encoder          - the encoder
+     * @param decoder          - the decoder
+     * @param handler          - the handler
+     * @param <T>
+     * @return
+     */
     public <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
-        PacketContainer<T> container = new PacketContainer<>(packetIdentifier, messageType, encoder, decoder, handler);
+        return registerPacket(packetIdentifier, messageType, encoder, decoder, handler, false);
+    }
+
+    /**
+     * Register packet.
+     *
+     * @param packetIdentifier      - the packet identifier
+     * @param messageType           - the messageType
+     * @param encoder               - the encoder
+     * @param decoder               - the decoder
+     * @param handler               - the handler
+     * @param handleOnNetworkThread - to handle on the network thread
+     * @param <T>
+     * @return
+     */
+    public <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> messageType, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler, boolean handleOnNetworkThread)
+    {
+        PacketContainer<T> container = new PacketContainer<>(packetIdentifier, messageType, encoder, decoder, handler, handleOnNetworkThread);
         PACKET_MAP.put(messageType, container);
         registerPacket(container);
         return this;

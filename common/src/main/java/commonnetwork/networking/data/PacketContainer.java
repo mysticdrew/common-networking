@@ -11,6 +11,15 @@ public record PacketContainer<T>(ResourceLocation packetIdentifier,
                                  Class<T> messageType,
                                  BiConsumer<T, FriendlyByteBuf> encoder,
                                  Function<FriendlyByteBuf, T> decoder,
-                                 Consumer<PacketContext<T>> handler)
+                                 Consumer<PacketContext<T>> handler,
+                                 boolean handleOnNetworkThread)
 {
+    public PacketContainer(ResourceLocation packetIdentifier,
+                           Class<T> messageType,
+                           BiConsumer<T, FriendlyByteBuf> encoder,
+                           Function<FriendlyByteBuf, T> decoder,
+                           Consumer<PacketContext<T>> handler)
+    {
+        this(packetIdentifier, messageType, encoder, decoder, handler, false);
+    }
 }

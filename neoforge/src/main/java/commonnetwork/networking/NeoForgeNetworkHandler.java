@@ -11,12 +11,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlerEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 import net.neoforged.neoforge.network.registration.IPayloadRegistrar;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 
@@ -55,7 +55,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
                     container.packetIdentifier(),
                     container.encoder(),
                     decoder(container.decoder()),
-                    buildHandler(container.handler())
+                    buildHandler(container)
             );
 
             PACKETS.put(container.messageType(), packetContainer);
@@ -105,19 +105,20 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     }
 
     private <T, K extends
-            NeoForgePacket<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
+            NeoForgePacket<T>> IPayloadHandler<K> buildHandler(PacketContainer<T> container)
     {
         return (payload, ctx) -> {
             try
             {
                 Side side = ctx.flow().getReceptionSide().equals(LogicalSide.SERVER) ? Side.SERVER : Side.CLIENT;
-                if (Side.SERVER.equals(side))
+
+                if (container.handleOnNetworkThread())
                 {
-                    handler.accept(new PacketContext<>((ServerPlayer) ctx.player().get(), payload.packet(), side));
+                    handle(side, container, ctx, payload);
                 }
                 else
                 {
-                    handler.accept(new PacketContext<>(payload.packet(), side));
+                    ctx.workHandler().execute(() -> handle(side, container, ctx, payload));
                 }
 
             }
@@ -126,5 +127,17 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
                 Constants.LOG.error("Error handling packet: {} -> ", payload.packet().getClass(), t);
             }
         };
+    }
+
+    private <T> void handle(Side side, PacketContainer<T> container, IPayloadContext ctx, NeoForgePacket<T> payload)
+    {
+        if (Side.SERVER.equals(side))
+        {
+            container.handler().accept(new PacketContext<>((ServerPlayer) ctx.player().get(), payload.packet(), side));
+        }
+        else
+        {
+            container.handler().accept(new PacketContext<>(payload.packet(), side));
+        }
     }
 }

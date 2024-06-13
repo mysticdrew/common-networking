@@ -37,7 +37,15 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
                 ClientPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((client, listener, buf, responseSender) -> {
                     buf.readByte(); // handle forge discriminator
                     T message = container.decoder().apply(buf);
-                    client.execute(() -> container.handler().accept(new PacketContext<>(message, Side.CLIENT)));
+                    if (container.handleOnNetworkThread())
+                    {
+                        container.handler().accept(new PacketContext<>(message, Side.CLIENT));
+                    }
+                    else
+                    {
+                        client.execute(() -> container.handler().accept(new PacketContext<>(message, Side.CLIENT)));
+                    }
+
                 }));
             }
 
@@ -45,7 +53,15 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             ServerPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((server, player, listener, buf, responseSender) -> {
                 buf.readByte(); // handle forge discriminator
                 T message = container.decoder().apply(buf);
-                server.execute(() -> container.handler().accept(new PacketContext<>(player, message, Side.SERVER)));
+                if (container.handleOnNetworkThread())
+                {
+                    container.handler().accept(new PacketContext<>(player, message, Side.SERVER));
+                }
+                else
+                {
+                    server.execute(() -> container.handler().accept(new PacketContext<>(player, message, Side.SERVER)));
+                }
+
             }));
         }
     }
