@@ -96,10 +96,12 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         return (message, ctx) -> {
             try
             {
-                Side side = ctx.isServerSide() ? Side.SERVER : Side.CLIENT;
-                ServerPlayer player = ctx.getSender();
-                handler.accept(new PacketContext<>(player, message, side));
                 ctx.setPacketHandled(true);
+                ctx.enqueueWork(() -> {
+                    Side side = ctx.isServerSide() ? Side.SERVER : Side.CLIENT;
+                    ServerPlayer player = ctx.getSender();
+                    handler.accept(new PacketContext<>(player, message, side));
+                });
             }
             catch (Throwable t)
             {
