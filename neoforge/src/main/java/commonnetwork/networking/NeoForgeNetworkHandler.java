@@ -6,6 +6,8 @@ import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
@@ -53,7 +55,11 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
-            PacketDistributor.sendToServer(new CommonPacketWrapper<>(container, packet));
+            if (ignoreCheck || Minecraft.getInstance().getConnection().hasChannel(container.getType()))
+            {
+                Minecraft.getInstance().getConnection()
+                        .send(new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
+            }
         }
         else
         {
