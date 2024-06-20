@@ -33,23 +33,18 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             if (Side.CLIENT.equals(this.side))
             {
                 Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.CLIENT);
-
                 ClientPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((client, listener, buf, responseSender) -> {
                     buf.readByte(); // handle forge discriminator
                     T message = container.decoder().apply(buf);
                     client.execute(() -> container.handler().accept(new PacketContext<>(message, Side.CLIENT)));
                 }));
             }
-            else
-            {
-                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.SERVER);
-
-                ServerPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((server, player, listener, buf, responseSender) -> {
-                    buf.readByte(); // handle forge discriminator
-                    T message = container.decoder().apply(buf);
-                    server.execute(() -> container.handler().accept(new PacketContext<>(player, message, Side.SERVER)));
-                }));
-            }
+            Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), Side.SERVER);
+            ServerPlayNetworking.registerGlobalReceiver(container.packetIdentifier(), ((server, player, listener, buf, responseSender) -> {
+                buf.readByte(); // handle forge discriminator
+                T message = container.decoder().apply(buf);
+                server.execute(() -> container.handler().accept(new PacketContext<>(player, message, Side.SERVER)));
+            }));
         }
     }
 
