@@ -39,9 +39,16 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
                     .serverAcceptedVersions((a) -> true)
                     .networkProtocolVersion(() -> "1")
                     .simpleChannel();
-            channel.registerMessage(0, container.messageType(), container.encoder(), container.decoder(), buildHandler(container.handler()));
-            Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), this.side);
-            CHANNELS.put(container.messageType(), channel);
+            try
+            {
+                channel.registerMessage(0, container.messageType(), container.encoder(), container.decoder(), buildHandler(container.handler()));
+                Constants.LOG.debug("Registering packet {} : {} on the: {}", container.packetIdentifier(), container.messageType(), this.side);
+                CHANNELS.put(container.messageType(), channel);
+            }
+            catch (IllegalArgumentException iae)
+            {
+                Constants.LOG.error("Packet \"{}\" likely already registered {} on :{}", container.packetIdentifier(), container.messageType(), this.side, iae);
+            }
         }
     }
 
