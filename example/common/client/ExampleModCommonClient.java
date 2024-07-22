@@ -8,8 +8,6 @@ public class ExampleModCommonClient
 {
     public ExampleModCommonClient()
     {
-        // initialize and register packets on the client.
-        new ExamplePacketRegistration().init();
     }
 
     public void onJoinWorld() {

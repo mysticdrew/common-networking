@@ -22,9 +22,7 @@ public class Network
      * @param handler          - The handler method.
      * @param <T>              - The type
      * @return The registrar for chaining registrations.
-     * @deprecated This will likely be removed with the 1.20.5 update due to changes in vanilla and modloader networking.
      */
-    @Deprecated
     public static <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         return CommonNetworkMod.registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);

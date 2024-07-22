@@ -10,7 +10,7 @@ public class ExampleModCommon
 {
     public ExampleModCommon()
     {
-        // initialize and register packets
+        // initialize and register packets this will register client and server packets.
         new ExamplePacketRegistration().init();
     }
 
