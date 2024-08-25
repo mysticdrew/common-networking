@@ -41,11 +41,6 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
-    public <T> void sendToServer(T packet)
-    {
-        this.sendToServer(packet, false);
-    }
-
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
 
@@ -69,7 +64,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
 
     }
 
-    public <T> void sendToClient(T packet, ServerPlayer player)
+    public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
 
         var message = (Message<T>) CHANNELS.get(packet.getClass());
@@ -77,7 +72,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         Connection connection = player.connection.getConnection();
         if (message != null)
         {
-            if (channel.isRemotePresent(connection))
+            if (ignoreCheck || channel.isRemotePresent(connection))
             {
                 FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
                 message.encoder().accept(packet, buf);

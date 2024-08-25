@@ -44,11 +44,6 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
-    public <T> void sendToServer(T packet)
-    {
-        this.sendToServer(packet, false);
-    }
-
     @SuppressWarnings("unchecked")
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
@@ -68,12 +63,12 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void sendToClient(T packet, ServerPlayer player)
+    public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
-            if (player.connection.hasChannel(container.type()))
+            if (ignoreCheck || player.connection.hasChannel(container.type()))
             {
                 PacketDistributor.sendToPlayer(player, new CommonPacketWrapper<>(container, packet));
             }
