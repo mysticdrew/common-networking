@@ -83,10 +83,11 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
                 message.encoder().accept(packet, buf);
                 channel.send(buf, connection);
             }
-            else
-            {
-                throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered on both sides!");
-            }
+
+        }
+        else
+        {
+            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered on both sides!");
         }
     }
 
