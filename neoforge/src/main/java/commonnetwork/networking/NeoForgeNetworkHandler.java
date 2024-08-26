@@ -7,6 +7,7 @@ import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -28,7 +29,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     }
 
     @Override
-    <T> void registerPacket(PacketContainer<T> container)
+    <T, B extends FriendlyByteBuf> void registerPacket(PacketContainer<T, B> container)
     {
         // not needed for neoforge
     }
@@ -47,7 +48,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     @SuppressWarnings("unchecked")
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
-        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+        PacketContainer<T, ?> container = (PacketContainer<T, ?>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
             if (ignoreCheck || Minecraft.getInstance().getConnection().hasChannel(container.getType()))
@@ -65,7 +66,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     @SuppressWarnings("unchecked")
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
-        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+        PacketContainer<T, ?> container = (PacketContainer<T, ?>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
             if (ignoreCheck || player.connection.hasChannel(container.type()))
@@ -80,7 +81,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     }
 
     private <T, K extends
-            CommonPacketWrapper<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
+            CommonPacketWrapper<T, ?>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
     {
         return (payload, ctx) -> {
             try

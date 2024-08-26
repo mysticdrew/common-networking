@@ -11,13 +11,19 @@ public class ExamplePacketTwo
 {
     public static final ResourceLocation CHANNEL = new ResourceLocation(Constants.MOD_ID, "example_packet_two");
 
+    public static final StreamCodec<RegistryFriendlyByteBuf, ExamplePacketTwo> STREAM_CODEC = StreamCodec.ofMember(ExamplePacketTwo::encode, ExamplePacketTwo::new);
+
     public ExamplePacketTwo()
     {
     }
 
-    public static ExamplePacketTwo decode(FriendlyByteBuf buf)
+    public static CustomPacketPayload.Type<CustomPacketPayload> type()
     {
-        return new ExamplePacketTwo();
+        return new CustomPacketPayload.Type<>(CHANNEL);
+    }
+
+    public ExamplePacketTwo(RegistryFriendlyByteBuf buf)
+    {
     }
 
     public void encode(FriendlyByteBuf buf)

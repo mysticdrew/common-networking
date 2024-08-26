@@ -5,6 +5,8 @@ import commonnetwork.networking.PacketRegistrar;
 import commonnetwork.networking.PacketRegistrationHandler;
 import commonnetwork.networking.data.PacketContext;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.function.BiConsumer;
@@ -38,6 +40,7 @@ public class CommonNetworkMod
         return delayedHandler;
     }
 
+    @Deprecated(forRemoval = true)
     public static <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         if (INSTANCE != null)
@@ -47,6 +50,18 @@ public class CommonNetworkMod
         else
         {
             return getDelayedHandler().registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);
+        }
+    }
+
+    public static <T, B extends FriendlyByteBuf> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<B, T> codec, Consumer<PacketContext<T>> handler)
+    {
+        if (INSTANCE != null)
+        {
+            return INSTANCE.packetRegistration.registerPacket(type, packetClass, codec, handler);
+        }
+        else
+        {
+            return getDelayedHandler().registerPacket(type, packetClass, codec, handler);
         }
     }
 

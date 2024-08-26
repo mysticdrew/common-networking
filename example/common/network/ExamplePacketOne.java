@@ -10,14 +10,19 @@ import net.minecraft.resources.ResourceLocation;
 public class ExamplePacketOne
 {
     public static final ResourceLocation CHANNEL = new ResourceLocation(Constants.MOD_ID, "example_packet_one");
+    public static final StreamCodec<FriendlyByteBuf, ExamplePacketOne> STREAM_CODEC = StreamCodec.ofMember(ExamplePacketOne::encode, ExamplePacketTwo::new);
 
     public ExamplePacketOne()
     {
     }
 
-    public static ExamplePacketOne decode(FriendlyByteBuf buf)
+    public static CustomPacketPayload.Type<CustomPacketPayload> type()
     {
-        return new ExamplePacketOne();
+        return new CustomPacketPayload.Type<>(CHANNEL);
+    }
+
+    public ExamplePacketOne(FriendlyByteBuf buf)
+    {
     }
 
     public void encode(FriendlyByteBuf buf)

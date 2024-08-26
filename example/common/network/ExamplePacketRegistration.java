@@ -8,7 +8,7 @@ public class TestRegistration
     public void init()
     {
         Network
-                .registerPacket(ExamplePacketOne.CHANNEL, ExamplePacketOne.class, ExamplePacketOne::encode, ExamplePacketOne::decode, ExamplePacketOne::handle)
-                .registerPacket(ExamplePacketTwo.CHANNEL, ExamplePacketTwo.class, ExamplePacketTwo::encode, ExamplePacketTwo::decode, ExamplePacketTwo::handle);
+                .registerPacket(ExamplePacketOne.type(), ExamplePacketOne.class, ExamplePacketOne.STREAM_CODEC, ExamplePacketOne::handle)
+                .registerPacket(ExamplePacketTwo.type(), ExamplePacketTwo.class, ExamplePacketTwo.STREAM_CODEC, ExamplePacketTwo::handle);
     }
 }

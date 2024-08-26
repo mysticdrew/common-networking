@@ -1,16 +1,17 @@
 package commonnetwork.networking;
 
 import commonnetwork.Constants;
+import commonnetwork.networking.data.CommonPacketWrapper;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
-import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.EventNetworkChannel;
 
@@ -21,40 +22,36 @@ import java.util.function.Consumer;
 
 public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
-    private final Map<Class<?>, Message<?>> CHANNELS = new HashMap<>();
+    private final Map<Class<?>, EventNetworkChannel> CHANNELS = new HashMap<>();
 
     public ForgeNetworkHandler(Side side)
     {
         super(side);
     }
 
-    protected <T> void registerPacket(PacketContainer<T> container)
+    protected <T, B extends FriendlyByteBuf> void registerPacket(PacketContainer<T, B> container)
     {
         if (CHANNELS.get(container.classType()) == null)
         {
             var channel = ChannelBuilder.named(container.type().id()).optional().eventNetworkChannel()
                     .addListener(event -> {
-                        T message = container.decoder().apply(event.getPayload());
-                        buildHandler(container.handler()).accept(message, event.getSource());
+                        CommonPacketWrapper<T, B> msg = container.getCodec().decode(event.getPayload());
+                        buildHandler(container.handler()).accept(msg.packet(), event.getSource());
                     });
-            CHANNELS.put(container.classType(), new Message<>(channel, container.encoder()));
+            CHANNELS.put(container.classType(), channel);
         }
     }
 
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
 
-        var message = (Message<T>) CHANNELS.get(packet.getClass());
-        if (message != null)
+        Channel<T> channel = (Channel<T>) CHANNELS.get(packet.getClass());
+        if (channel != null)
         {
-            EventNetworkChannel channel = message.channel();
             Connection connection = Minecraft.getInstance().getConnection().getConnection();
-
             if (ignoreCheck || channel.isRemotePresent(connection))
             {
-                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-                message.encoder().accept(packet, buf);
-                channel.send(buf, connection);
+                channel.send(packet, connection);
             }
         }
         else
@@ -67,16 +64,14 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
 
-        var message = (Message<T>) CHANNELS.get(packet.getClass());
-        EventNetworkChannel channel = message.channel();
+        Channel<T> channel = (Channel<T>) CHANNELS.get(packet.getClass());
+
         Connection connection = player.connection.getConnection();
-        if (message != null)
+        if (channel != null)
         {
             if (ignoreCheck || channel.isRemotePresent(connection))
             {
-                FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
-                message.encoder().accept(packet, buf);
-                channel.send(buf, connection);
+                channel.send(packet, connection);
             }
 
         }
@@ -106,7 +101,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         };
     }
 
-    public record Message<T>(EventNetworkChannel channel, BiConsumer<T, FriendlyByteBuf> encoder)
-    {
-    }
+//    public record Message<T>(EventNetworkChannel channel, BiConsumer<T, ? extends FriendlyByteBuf> encoder)
+//    {
+//    }
 }
