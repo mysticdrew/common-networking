@@ -43,7 +43,6 @@ public record PacketContainer<T>(
         return (CustomPacketPayload.Type<K>) type();
     }
 
-
     //TODO: Removing for mc 1.21.2 or 1.22, will also be able to remove the wrapping of the decoder.
     @SuppressWarnings("unchecked")
     public <K extends FriendlyByteBuf> StreamCodec<K, CommonPacketWrapper> getCodec()

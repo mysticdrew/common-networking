@@ -41,7 +41,7 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
     }
 
     @Override
-    public <T, B extends FriendlyByteBuf> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<B, T> codec, Consumer<PacketContext<T>> handler)
+    public <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler);
         PACKET_MAP.put(packetClass, container);

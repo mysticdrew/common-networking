@@ -42,7 +42,7 @@ public class Network
      * @param <T>         - The class type
      * @return The registrar for chaining registrations.
      */
-    public static <T, B extends FriendlyByteBuf> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<B, T> codec, Consumer<PacketContext<T>> handler)
+    public static <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
         return CommonNetworkMod.registerPacket(type, packetClass, codec, handler);
     }
