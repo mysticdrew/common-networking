@@ -9,12 +9,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public record PacketContainer<T, B extends FriendlyByteBuf>(
+public record PacketContainer<T>(
         CustomPacketPayload.Type<? extends CustomPacketPayload> type,
         Class<T> classType,
         BiConsumer<T, FriendlyByteBuf> encoder,
         Function<FriendlyByteBuf, T> decoder,
-        StreamCodec<? super B, T> codec,
+        StreamCodec<? super FriendlyByteBuf, T> codec,
         Consumer<PacketContext<T>> handler)
 {
     //TODO: Removing for mc 1.21.2 or 1.22
@@ -28,12 +28,12 @@ public record PacketContainer<T, B extends FriendlyByteBuf>(
         this(new CustomPacketPayload.Type<>(id), classType, encoder, decoder, null, handle);
     }
 
-    public PacketContainer( CustomPacketPayload.Type<? extends CustomPacketPayload> type,
-                           Class<T> classType,
-                           StreamCodec<? super B, T> codec,
-                           Consumer<PacketContext<T>> handle)
+    public <B extends FriendlyByteBuf> PacketContainer(CustomPacketPayload.Type<? extends CustomPacketPayload> type,
+                                                       Class<T> classType,
+                                                       StreamCodec<? super B, T> codec,
+                                                       Consumer<PacketContext<T>> handle)
     {
-        this(type, classType, null, null, codec, handle);
+        this(type, classType, null, null, (StreamCodec<? super FriendlyByteBuf, T>) codec, handle);
     }
 
     @SuppressWarnings("unchecked")
@@ -57,8 +57,8 @@ public record PacketContainer<T, B extends FriendlyByteBuf>(
         {
             return CustomPacketPayload.codec(
 
-                    (packet, buf) -> this.codec().encode((B) buf, (T) packet.packet()),
-                    (buf) -> new CommonPacketWrapper<>(this, this.codec().decode((B) buf)));
+                    (packet, buf) -> this.codec().encode(buf, (T) packet.packet()),
+                    (buf) -> new CommonPacketWrapper<>(this, this.codec().decode(buf)));
         }
     }
 }

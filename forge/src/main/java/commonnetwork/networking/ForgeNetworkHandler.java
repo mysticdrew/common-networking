@@ -8,7 +8,6 @@ import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.network.Channel;
@@ -29,13 +28,13 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         super(side);
     }
 
-    protected <T, B extends FriendlyByteBuf> void registerPacket(PacketContainer<T, B> container)
+    protected <T> void registerPacket(PacketContainer<T> container)
     {
         if (CHANNELS.get(container.classType()) == null)
         {
             var channel = ChannelBuilder.named(container.type().id()).optional().eventNetworkChannel()
                     .addListener(event -> {
-                        CommonPacketWrapper<T, B> msg = container.getCodec().decode(event.getPayload());
+                        CommonPacketWrapper<T> msg = container.getCodec().decode(event.getPayload());
                         buildHandler(container.handler()).accept(msg.packet(), event.getSource());
                     });
             CHANNELS.put(container.classType(), channel);

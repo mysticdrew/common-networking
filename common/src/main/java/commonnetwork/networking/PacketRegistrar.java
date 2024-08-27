@@ -31,7 +31,7 @@ public interface PacketRegistrar
      * @deprecated this method will eventually be removed, please migrate to the method supplying your own encoding/decoding codec. Likely in 1.21.2 or 1.22.
      */
     @Deprecated(forRemoval = true)
-    <T, B extends FriendlyByteBuf> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler);
+    <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler);
 
     /**
      * Packet Registration

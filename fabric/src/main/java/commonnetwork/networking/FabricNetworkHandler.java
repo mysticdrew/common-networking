@@ -9,7 +9,6 @@ import commonnetwork.networking.exceptions.RegistrationException;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
 public class FabricNetworkHandler extends PacketRegistrationHandler
@@ -21,7 +20,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
     }
 
     @SuppressWarnings("unchecked")
-    protected <T, B extends FriendlyByteBuf> void registerPacket(PacketContainer<T, B> container)
+    protected <T> void registerPacket(PacketContainer<T> container)
     {
         try
         {
@@ -38,14 +37,14 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.CLIENT);
 
             ClientPlayNetworking.registerGlobalReceiver(container.getType(),
-                    (ClientPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T, B>>) (payload, context) -> context.client().execute(() ->
+                    (ClientPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
                             container.handler().accept(
                                     new PacketContext<>(payload.packet(), Side.CLIENT))));
         }
 
         Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.SERVER);
         ServerPlayNetworking.registerGlobalReceiver(container.getType(),
-                (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T, B>>) (payload, context) -> context.player().server.execute(() ->
+                (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.player().server.execute(() ->
                         container.handler().accept(
                                 new PacketContext<>(context.player(), payload.packet(), Side.SERVER))));
 
@@ -55,7 +54,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
     @SuppressWarnings("unchecked")
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
-        PacketContainer<T,?> container = (PacketContainer<T,?>) PACKET_MAP.get(packet.getClass());
+        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
             if (ignoreCheck || ClientPlayNetworking.canSend(container.type().id()))
@@ -72,7 +71,7 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
     @SuppressWarnings("unchecked")
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
-        PacketContainer<T,?> container = (PacketContainer<T,?>) PACKET_MAP.get(packet.getClass());
+        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
             if (ignoreCheck || ServerPlayNetworking.canSend(player, container.type().id()))
