@@ -28,6 +28,7 @@ public record PacketContainer<T>(
         this(new CustomPacketPayload.Type<>(id), classType, encoder, decoder, null, handle);
     }
 
+    @SuppressWarnings("unchecked")
     public <B extends FriendlyByteBuf> PacketContainer(CustomPacketPayload.Type<? extends CustomPacketPayload> type,
                                                        Class<T> classType,
                                                        StreamCodec<? super B, T> codec,
@@ -44,11 +45,12 @@ public record PacketContainer<T>(
 
 
     //TODO: Removing for mc 1.21.2 or 1.22, will also be able to remove the wrapping of the decoder.
+    @SuppressWarnings("unchecked")
     public <K extends FriendlyByteBuf> StreamCodec<K, CommonPacketWrapper> getCodec()
     {
         if (this.codec() == null)
         {
-
+            // builds a codec from the supplied encoder and decoder.
             return CustomPacketPayload.codec(
                     (packet, buf) -> this.encoder().accept((T) packet.packet(), buf),
                     (buf) -> new CommonPacketWrapper<>(this, this.decoder().apply(buf)));
