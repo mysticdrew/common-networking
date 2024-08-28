@@ -20,19 +20,19 @@ repositories {
 }
 Fabric:
 dependencies {
-    modImplementation 'mysticdrew:common-networking-fabric:1.0.15-1.21'
+    modImplementation 'mysticdrew:common-networking-fabric:1.0.16-1.21'
 }
 Forge:
 dependencies {
-    implementation 'mysticdrew:common-networking-forge:1.0.15-1.21'
+    implementation 'mysticdrew:common-networking-forge:1.0.16-1.21'
 }
 NeoForge:
 dependencies {
-    implementation 'mysticdrew:common-networking-neoforge:1.0.15-1.21'
+    implementation 'mysticdrew:common-networking-neoforge:1.0.16-1.21'
 }
 Common:
 dependencies {
-    implementation 'mysticdrew:common-networking-common:1.0.15-1.21'
+    implementation 'mysticdrew:common-networking-common:1.0.16-1.21'
 }
 ```
 ### How to Use:
