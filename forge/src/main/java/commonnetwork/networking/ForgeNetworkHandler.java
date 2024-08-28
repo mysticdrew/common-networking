@@ -6,11 +6,13 @@ import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
+import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.network.CustomPayloadEvent;
-import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.EventNetworkChannel;
 
@@ -21,7 +23,8 @@ import java.util.function.Consumer;
 
 public class ForgeNetworkHandler extends PacketRegistrationHandler
 {
-    private final Map<Class<?>, EventNetworkChannel> CHANNELS = new HashMap<>();
+    //    private final Map<Class<?>, EventNetworkChannel> CHANNELS = new HashMap<>();
+    private final Map<Class<?>, Message<?>> CHANNELS = new HashMap<>();
 
     public ForgeNetworkHandler(Side side)
     {
@@ -37,20 +40,23 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
                         CommonPacketWrapper<T> msg = container.getCodec().decode(event.getPayload());
                         buildHandler(container.handler()).accept(msg.packet(), event.getSource());
                     });
-            CHANNELS.put(container.classType(), channel);
+            CHANNELS.put(container.classType(), new Message<>(channel, container));
         }
     }
 
     public <T> void sendToServer(T packet, boolean ignoreCheck)
     {
 
-        Channel<T> channel = (Channel<T>) CHANNELS.get(packet.getClass());
-        if (channel != null)
+        var message = (Message<T>) CHANNELS.get(packet.getClass());
+        if (message != null)
         {
+            var channel = message.channel();
             Connection connection = Minecraft.getInstance().getConnection().getConnection();
             if (ignoreCheck || channel.isRemotePresent(connection))
             {
-                channel.send(packet, connection);
+                FriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), Minecraft.getInstance().player.registryAccess());
+                message.container.codec().encode(buf, packet);
+                channel.send(buf, connection);
             }
         }
         else
@@ -63,14 +69,16 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
 
-        Channel<T> channel = (Channel<T>) CHANNELS.get(packet.getClass());
-
-        Connection connection = player.connection.getConnection();
-        if (channel != null)
+        var message = (Message<T>) CHANNELS.get(packet.getClass());
+        if (message != null)
         {
+            var channel = message.channel();
+            Connection connection = player.connection.getConnection();
             if (ignoreCheck || channel.isRemotePresent(connection))
             {
-                channel.send(packet, connection);
+                FriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.server.registryAccess());
+                message.container.codec().encode(buf, packet);
+                channel.send(buf, connection);
             }
 
         }
@@ -100,7 +108,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         };
     }
 
-//    public record Message<T>(EventNetworkChannel channel, BiConsumer<T, ? extends FriendlyByteBuf> encoder)
-//    {
-//    }
+    public record Message<T>(EventNetworkChannel channel, PacketContainer<T> container)
+    {
+    }
 }
