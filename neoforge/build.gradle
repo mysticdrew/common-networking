@@ -19,7 +19,7 @@ plugins {
     id 'idea'
     id 'java'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '[7.0.145]'
+    id 'net.neoforged.moddev'
     id 'net.darkhax.curseforgegradle' version '1.+'
 }
 
@@ -36,24 +36,37 @@ tasks.withType(GenerateModuleMetadata) {
     enabled = false
 }
 
-runs {
-    configureEach {
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
-        systemProperty 'mixin.debug.export', 'true'
-        systemProperty 'forge.logging.console.level', 'info'
-        systemProperty 'journeymap.map_testing', 'true'
-//        ideaModule "${rootProject.name}.${project.name}.main"
-        modSource project.sourceSets.main
+neoForge {
+    version = neoforge_version
+    // Automatically enable neoforge AccessTransformers if the file exists
+    def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.add(at.absolutePath)
     }
-
-    client {
-        workingDirectory project.file('run/client')
-//        taskName 'Client'
+    addModdingDependenciesTo(sourceSets["test"])
+    parchment {
+        minecraftVersion = mappings_mc_version
+        mappingsVersion = mappings_date
     }
-
-    server {
-        workingDirectory project.file('run/server')
-//        taskName 'Server'
+    runs {
+        configureEach {
+//            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            ideName = "NeoForge ${it.name.capitalize()} (${project.path})" // Unify the run config names with fabric
+            jvmArgument("-Dmixin.debug.export=true")
+        }
+        client {
+            client()
+            gameDirectory = project.file('run/client')
+        }
+        server {
+            server()
+            gameDirectory = project.file("run/server")
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
     }
 }
 
@@ -61,17 +74,22 @@ runs {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
-    implementation "net.neoforged:neoforge:${project.neoforge_version}"
     compileOnly project(":common")
 }
 
-//tasks.withType(JavaCompile).matching {name != "neoforge"}.configureEach {
-//    source(project(":common").sourceSets.main.allSource)
-//}
-
-tasks.named('compileJava', JavaCompile).configure {
+tasks.withType(JavaCompile).configureEach {
     source(project(":common").sourceSets.main.allSource)
+    options.encoding = "UTF-8"
 }
+
+tasks.withType(Javadoc).configureEach {
+    source(project(":common").sourceSets.main.allJava)
+}
+
+tasks.named("sourcesJar", Jar) {
+    from(project(":common").sourceSets.main.allSource)
+}
+
 
 processResources {
     from project(":common").sourceSets.main.resources
@@ -151,7 +169,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
     mainFile.releaseType = release_type
     mainFile.addModLoader("NeoForge")
     mainFile.addJavaVersion("Java 21")
-    mainFile.addGameVersion("${project.minecraft_version}","1.21.1")
+    mainFile.addGameVersion("${project.minecraft_version}")
     mainFile.changelogType = "html"
     mainFile.changelog = file("$project.buildDir/doc/changelog.html")
 }
@@ -165,7 +183,7 @@ modrinth {
     versionName = "${archivesBaseName}-${version}"
     versionType = release_type
     uploadFile = jar
-    gameVersions = ["${project.minecraft_version}","1.21.1"]
+    gameVersions = ["${project.minecraft_version}"]
     loaders = ["neoforge"]
     changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
 }

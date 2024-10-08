@@ -37,7 +37,7 @@ dependencies {
     minecraft "com.mojang:minecraft:${minecraft_version}"
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 
     compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
 
@@ -83,7 +83,7 @@ task processDocs(type: Copy) {
         expand 'version': project.version,
                 'date': getDate(),
                 'mcversion': project.minecraft_version,
-                'loaderversion': project.fabric_version,
+                'loaderversion': project.fabric_api_version,
                 'loadername': "Fabric"
     }
     into "$project.buildDir/doc"
@@ -98,8 +98,17 @@ processResources {
     }
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     source(project(":common").sourceSets.main.allSource)
+    options.encoding = "UTF-8"
+}
+
+tasks.withType(Javadoc).configureEach {
+    source(project(":common").sourceSets.main.allJava)
+}
+
+tasks.named("sourcesJar", Jar) {
+    from(project(":common").sourceSets.main.allSource)
 }
 
 publishing {
@@ -141,7 +150,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
     mainFile.releaseType = release_type
     mainFile.addModLoader("Fabric", "Quilt")
     mainFile.addJavaVersion("Java 21")
-    mainFile.addGameVersion("${project.minecraft_version}","1.21.1")
+    mainFile.addGameVersion("${project.minecraft_version}")
     mainFile.changelogType = "html"
     mainFile.changelog = file("$project.buildDir/doc/changelog.html")
 }
@@ -156,7 +165,7 @@ modrinth {
     versionName = "${archivesBaseName}-${version}"
     versionType = release_type
     uploadFile = remapJar
-    gameVersions = ["${project.minecraft_version}","1.21.1"]
+    gameVersions = ["${project.minecraft_version}"]
     loaders = ["fabric", "quilt"]
     changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
 }
