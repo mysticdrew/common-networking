@@ -6,15 +6,13 @@ import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
-import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.EventNetworkChannel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,11 +33,32 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
     {
         if (CHANNELS.get(container.classType()) == null)
         {
-            var channel = ChannelBuilder.named(container.type().id()).optional().eventNetworkChannel()
-                    .addListener(event -> {
-                        CommonPacketWrapper<T> msg = container.getCodec().decode(event.getPayload());
-                        buildHandler(container.handler()).accept(msg.packet(), event.getSource());
-                    });
+            var channelBuilder = ChannelBuilder.named(container.type().id()).optional().payloadChannel();
+            Channel<CustomPacketPayload> channel;
+            if (container.packetType() == PacketContainer.PacketType.PLAY)
+            {
+                channel = channelBuilder
+                        .play()
+                        .bidirectional()
+                        .addMain(container.getType(), container.getCodec(), (msg, ctx) -> buildHandler(container.handler())
+                                .accept((T) msg.packet(), ctx))
+                        .build();
+            }
+            else
+            {
+                channel = channelBuilder
+                        .configuration()
+                        .bidirectional()
+                        .addMain(container.getType(), container.getCodec(), (msg, ctx) -> buildHandler(container.handler())
+                                .accept((T) msg.packet(), ctx)
+                        ).build();
+            }
+
+//            var channel = ChannelBuilder.named(container.type().id()).optional().eventNetworkChannel()
+//                    .addListener(event -> {
+//                        CommonPacketWrapper<T> msg = container.getCodec().decode(event.getPayload());
+//                        buildHandler(container.handler()).accept(msg.packet(), event.getSource());
+//                    });
             CHANNELS.put(container.classType(), new Message<>(channel, container));
         }
     }
@@ -54,9 +73,9 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
             Connection connection = Minecraft.getInstance().getConnection().getConnection();
             if (ignoreCheck || channel.isRemotePresent(connection))
             {
-                FriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), Minecraft.getInstance().player.registryAccess());
-                message.container.codec().encode(buf, packet);
-                channel.send(buf, connection);
+//                FriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), Minecraft.getInstance().player.registryAccess());
+//                message.container.codec().encode(buf, packet);
+                channel.send(new CommonPacketWrapper(message.container, packet), connection);
             }
         }
         else
@@ -76,9 +95,9 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
             Connection connection = player.connection.getConnection();
             if (ignoreCheck || channel.isRemotePresent(connection))
             {
-                FriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.server.registryAccess());
-                message.container.codec().encode(buf, packet);
-                channel.send(buf, connection);
+//                FriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.server.registryAccess());
+//                message.container.codec().encode(buf, packet);
+                channel.send(new CommonPacketWrapper(message.container, packet), connection);
             }
 
         }
@@ -88,6 +107,9 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
+    private static void handle(CustomPacketPayload customPacketPayload, CustomPayloadEvent.Context ctx)
+    {
+    }
 
     private <T> BiConsumer<T, CustomPayloadEvent.Context> buildHandler(Consumer<PacketContext<T>> handler)
     {
@@ -108,7 +130,7 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         };
     }
 
-    public record Message<T>(EventNetworkChannel channel, PacketContainer<T> container)
+    public record Message<T>(Channel<CustomPacketPayload> channel, PacketContainer<T> container)
     {
     }
 }

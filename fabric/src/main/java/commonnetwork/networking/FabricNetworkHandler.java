@@ -6,8 +6,10 @@ import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
+import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -24,8 +26,16 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
     {
         try
         {
-            PayloadTypeRegistry.playC2S().register(container.getType(), container.getCodec());
-            PayloadTypeRegistry.playS2C().register(container.getType(), container.getCodec());
+            if (container.packetType() == PacketContainer.PacketType.PLAY)
+            {
+                PayloadTypeRegistry.playC2S().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.playS2C().register(container.getType(), container.getCodec());
+            }
+            else
+            {
+                PayloadTypeRegistry.configurationC2S().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.configurationS2C().register(container.getType(), container.getCodec());
+            }
         }
         catch (IllegalArgumentException e)
         {
@@ -36,17 +46,41 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         {
             Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.CLIENT);
 
-            ClientPlayNetworking.registerGlobalReceiver(container.getType(),
-                    (ClientPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
-                            container.handler().accept(
-                                    new PacketContext<>(payload.packet(), Side.CLIENT))));
+            if (container.packetType() == PacketContainer.PacketType.PLAY)
+            {
+                // play packets
+                ClientPlayNetworking.registerGlobalReceiver(container.getType(),
+                        (ClientPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
+                                container.handler().accept(
+                                        new PacketContext<>(payload.packet(), Side.CLIENT))));
+            }
+            else
+            {
+                // configuration packets
+                ClientConfigurationNetworking.registerGlobalReceiver(container.getType(),
+                        (ClientConfigurationNetworking.ConfigurationPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
+                                container.handler().accept(
+                                        new PacketContext<>(payload.packet(), Side.CLIENT))));
+            }
         }
 
         Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.SERVER);
-        ServerPlayNetworking.registerGlobalReceiver(container.getType(),
-                (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.player().server.execute(() ->
-                        container.handler().accept(
-                                new PacketContext<>(context.player(), payload.packet(), Side.SERVER))));
+        if (container.packetType() == PacketContainer.PacketType.PLAY)
+        {
+            // play packets
+            ServerPlayNetworking.registerGlobalReceiver(container.getType(),
+                    (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.player().server.execute(() ->
+                            container.handler().accept(
+                                    new PacketContext<>(context.player(), payload.packet(), Side.SERVER))));
+        }
+        else
+        {
+            // configuration packets
+            ServerConfigurationNetworking.registerGlobalReceiver(container.getType(),
+                    (ServerConfigurationNetworking.ConfigurationPacketHandler<CommonPacketWrapper<T>>) (payload, context) -> context.server().execute(() ->
+                            container.handler().accept(
+                                    new PacketContext<>(null, payload.packet(), Side.SERVER))));
+        }
 
     }
 

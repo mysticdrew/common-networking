@@ -15,7 +15,8 @@ public record PacketContainer<T>(
         BiConsumer<T, FriendlyByteBuf> encoder,
         Function<FriendlyByteBuf, T> decoder,
         StreamCodec<? super FriendlyByteBuf, T> codec,
-        Consumer<PacketContext<T>> handler)
+        Consumer<PacketContext<T>> handler,
+        PacketType packetType)
 {
     //TODO: Removing for mc 1.21.2 or 1.22
     @Deprecated(forRemoval = true)
@@ -25,16 +26,17 @@ public record PacketContainer<T>(
                            Function<FriendlyByteBuf, T> decoder,
                            Consumer<PacketContext<T>> handle)
     {
-        this(new CustomPacketPayload.Type<>(id), classType, encoder, decoder, null, handle);
+        this(new CustomPacketPayload.Type<>(id), classType, encoder, decoder, null, handle, PacketType.PLAY);
     }
 
     @SuppressWarnings("unchecked")
     public <B extends FriendlyByteBuf> PacketContainer(CustomPacketPayload.Type<? extends CustomPacketPayload> type,
                                                        Class<T> classType,
                                                        StreamCodec<? super B, T> codec,
-                                                       Consumer<PacketContext<T>> handle)
+                                                       Consumer<PacketContext<T>> handle,
+                                                       PacketType packetType)
     {
-        this(type, classType, null, null, (StreamCodec<? super FriendlyByteBuf, T>) codec, handle);
+        this(type, classType, null, null, (StreamCodec<? super FriendlyByteBuf, T>) codec, handle, packetType );
     }
 
     @SuppressWarnings("unchecked")
@@ -61,5 +63,11 @@ public record PacketContainer<T>(
                     (packet, buf) -> this.codec().encode(buf, (T) packet.packet()),
                     (buf) -> new CommonPacketWrapper<>(this, this.codec().decode(buf)));
         }
+    }
+
+    public enum PacketType
+    {
+        PLAY,
+        CONFIGURATION
     }
 }

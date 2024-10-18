@@ -48,6 +48,21 @@ public class Network
     }
 
     /**
+     * Packet Registration
+     *
+     * @param type        - The packet type.
+     * @param packetClass - The class of the packet.
+     * @param codec       - The StreamCodec.
+     * @param handler     - The handler method.
+     * @param <T>         - The class type
+     * @return The registrar for chaining registrations.
+     */
+    public static <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    {
+        return CommonNetworkMod.registerConfigurationPacket(type, packetClass, codec, handler);
+    }
+
+    /**
      * Gets the Network handler for use to send packets.
      *
      * @return - The network handler

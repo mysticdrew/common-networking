@@ -65,6 +65,18 @@ public class CommonNetworkMod
         }
     }
 
+    public static <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    {
+        if (INSTANCE != null)
+        {
+            return INSTANCE.packetRegistration.registerConfigurationPacket(type, packetClass, codec, handler);
+        }
+        else
+        {
+            return getDelayedHandler().registerConfigurationPacket(type, packetClass, codec, handler);
+        }
+    }
+
     public PacketRegistrationHandler getPacketRegistration()
     {
         return packetRegistration;

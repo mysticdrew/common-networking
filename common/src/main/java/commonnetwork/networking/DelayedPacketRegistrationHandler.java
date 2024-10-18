@@ -41,7 +41,15 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     @Override
     public <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
-        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler);
+        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.PLAY);
+        QUEUED_PACKET_MAP.put(packetClass, container);
+        return this;
+    }
+
+    @Override
+    public <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    {
+        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.CONFIGURATION);
         QUEUED_PACKET_MAP.put(packetClass, container);
         return this;
     }

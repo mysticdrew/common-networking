@@ -19,7 +19,7 @@ public interface PacketRegistrar
     Side getSide();
 
     /**
-     * Packet Registration
+     * Packet Registration registers a PLAY packet
      *
      * @param packetIdentifier - The unique {@link ResourceLocation} packet id.
      * @param packetClass      - The class of the packet.
@@ -34,7 +34,7 @@ public interface PacketRegistrar
     <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler);
 
     /**
-     * Packet Registration
+     * Packet Registration, registers a PLAY packet
      *
      * @param type        - The packet type.
      * @param packetClass - The class of the packet.
@@ -45,4 +45,15 @@ public interface PacketRegistrar
      */
     <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler);
 
+    /**
+     * Packet Registration, registers a CONFIGURATION packet
+     *
+     * @param type        - The packet type.
+     * @param packetClass - The class of the packet.
+     * @param codec       - The StreamCodec.
+     * @param handler     - The handler method.
+     * @param <T>         - The class type
+     * @return The registrar for chaining registrations.
+     */
+    <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler);
 }

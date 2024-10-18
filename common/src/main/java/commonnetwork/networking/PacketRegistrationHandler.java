@@ -32,6 +32,7 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
         this.side = side;
     }
 
+    @Override
     public <T> PacketRegistrar registerPacket(ResourceLocation packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(packetIdentifier, packetClass, encoder, decoder, handler);
@@ -41,9 +42,18 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
     }
 
     @Override
+    public <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    {
+        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.CONFIGURATION);
+        PACKET_MAP.put(packetClass, container);
+        registerPacket(container);
+        return this;
+    }
+
+    @Override
     public <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
-        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler);
+        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.PLAY);
         PACKET_MAP.put(packetClass, container);
         registerPacket(container);
         return this;
