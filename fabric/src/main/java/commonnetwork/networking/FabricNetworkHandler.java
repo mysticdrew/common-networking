@@ -11,6 +11,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
 
 public class FabricNetworkHandler extends PacketRegistrationHandler
@@ -84,6 +87,22 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
 
     }
 
+    @Override
+    public <T> void send(T packet, Connection connection)
+    {
+        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+        if (container != null)
+        {
+            if (this.side == Side.SERVER)
+            {
+                connection.send(new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
+            }
+            else
+            {
+                connection.send(new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
+            }
+        }
+    }
 
     @SuppressWarnings("unchecked")
     public <T> void sendToServer(T packet, boolean ignoreCheck)

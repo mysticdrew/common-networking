@@ -107,6 +107,17 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
+    @Override
+    public <T> void send(T packet, Connection connection)
+    {
+        var message = (Message<T>) CHANNELS.get(packet.getClass());
+        if (message != null)
+        {
+            var channel = message.channel();
+            channel.send(new CommonPacketWrapper(message.container, packet), connection);
+        }
+    }
+
     private static void handle(CustomPacketPayload customPacketPayload, CustomPayloadEvent.Context ctx)
     {
     }

@@ -1,6 +1,7 @@
 package commonnetwork.api;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -34,6 +35,18 @@ public class Dispatcher
     public static <T> void sendToServer(T packet, boolean ignoreCheck)
     {
         Network.getNetworkHandler().sendToServer(packet, ignoreCheck);
+    }
+
+    /**
+     * Sends the packet to the connection.
+     *
+     * @param packet     - the packet
+     * @param connection - the connection
+     * @param <T>        - The packet
+     */
+    public static <T> void send(T packet, Connection connection)
+    {
+        Network.getNetworkHandler().send(packet, connection);
     }
 
     /**

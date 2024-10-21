@@ -1,6 +1,7 @@
 package commonnetwork.api;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -54,6 +55,15 @@ public interface NetworkHandler
      * @param <T>         - The packet
      */
     <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck);
+
+    /**
+     * Sends the packet to the connection.
+     *
+     * @param packet     - the packet
+     * @param connection - the connection
+     * @param <T>        - The packet
+     */
+    <T> void send(T packet, Connection connection);
 
     /**
      * Sends the packet to the client players, only if the players has the packet registered.
