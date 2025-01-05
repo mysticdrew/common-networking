@@ -96,9 +96,13 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
-            if (ignoreCheck || player.connection.hasChannel(container.type()))
+            if (player.connection.hasChannel(container.type()))
             {
                 PacketDistributor.sendToPlayer(player, new CommonPacketWrapper<>(container, packet));
+            }
+            else if (ignoreCheck)
+            {
+                send(packet, player.connection.getConnection());
             }
         }
         else
