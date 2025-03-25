@@ -8,6 +8,7 @@ plugins {
 version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
 archivesBaseName = "${project.base_name}" + "-common"
+boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
 
 test {
     useJUnitPlatform()
@@ -32,8 +33,8 @@ neoForge {
 }
 
 dependencies {
-     compileOnly group:'org.spongepowered', name:'mixin', version:'0.8.5'
-     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
 }
 
 processResources {
@@ -47,24 +48,31 @@ processResources {
 }
 
 publishing {
+    if (localBuild) {
+        repositories {
+            maven {
+                url System.getenv("local_maven_url") // or `url "file://" + System.getenv("local_maven")`
+            }
+        }
+    } else {
+        repositories {
+            maven {
+                name = "CommonNetworking"
+                url = uri("https://jm.gserv.me/repository/maven-releases/")
+
+                credentials {
+                    username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
+                    password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
+                }
+            }
+        }
+    }
     publications {
         mavenJava(MavenPublication) {
             groupId project.group
             artifactId project.archivesBaseName
             version project.version
             from components.java
-        }
-    }
-
-    repositories {
-        maven {
-            name = "CommonNetworking"
-            url = uri("https://jm.gserv.me/repository/maven-releases/")
-
-            credentials {
-                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
-                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
-            }
         }
     }
 }

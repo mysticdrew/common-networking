@@ -17,6 +17,10 @@ repositories {
     maven {
         url = "https://jm.gserv.me/repository/maven-public/"
     }
+    //or
+    maven {
+        url = 'https://maven.blamejared.com'
+    }
 }
 Fabric:
 dependencies {
