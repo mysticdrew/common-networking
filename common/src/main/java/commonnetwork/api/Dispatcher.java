@@ -85,7 +85,7 @@ public class Dispatcher
      */
     public static <T> void sendToAllClients(T packet, MinecraftServer server)
     {
-        sendToClients(packet, server.getPlayerList().getPlayers());
+        sendToClients(packet, server.theGame().playerList().getPlayers());
     }
 
     /**

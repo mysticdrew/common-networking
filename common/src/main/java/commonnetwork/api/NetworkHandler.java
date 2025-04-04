@@ -115,7 +115,7 @@ public interface NetworkHandler
      */
     default <T> void sendToAllClients(T packet, MinecraftServer server, boolean ignoreCheck)
     {
-        sendToClients(packet, server.getPlayerList().getPlayers(), ignoreCheck);
+        sendToClients(packet, server.theGame().playerList().getPlayers(), ignoreCheck);
     }
 
     /**
