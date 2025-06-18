@@ -11,10 +11,9 @@ import net.minecraftforge.fml.loading.FMLLoader;
 @Mod(Constants.MOD_ID)
 public class CommonNetworkForge
 {
-    public CommonNetworkForge()
+    public CommonNetworkForge(FMLJavaModLoadingContext context)
     {
-
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetupEvent);
+        FMLCommonSetupEvent.getBus(context.getModBusGroup()).addListener(this::commonSetupEvent);
     }
 
     public void commonSetupEvent(FMLCommonSetupEvent event)
