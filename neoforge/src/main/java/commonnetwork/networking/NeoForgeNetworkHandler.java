@@ -13,7 +13,6 @@ import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
@@ -63,7 +62,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         {
             if (ignoreCheck || Minecraft.getInstance().getConnection().hasChannel(container.getType()))
             {
-                Minecraft.getInstance().getConnection()
+                Minecraft.getInstance().getConnection().getConnection()
                         .send(new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
             }
         }
@@ -83,7 +82,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
             {
                 connection.send(new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
             }
-            else
+            else if (this.side == Side.CLIENT)
             {
                 connection.send(new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
             }
@@ -93,16 +92,13 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     @SuppressWarnings("unchecked")
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
+        Constants.LOG.info("Sending packet {} to client from side: {}", packet.getClass(), this.side);
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
-            if (player.connection.hasChannel(container.type()))
+            if (ignoreCheck || player.connection.hasChannel(container.type()))
             {
-                PacketDistributor.sendToPlayer(player, new CommonPacketWrapper<>(container, packet));
-            }
-            else if (ignoreCheck)
-            {
-                send(packet, player.connection.getConnection());
+                player.connection.getConnection().send(new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
             }
         }
         else
