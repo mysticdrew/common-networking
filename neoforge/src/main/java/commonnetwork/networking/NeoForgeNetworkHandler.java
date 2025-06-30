@@ -42,13 +42,17 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         {
             PACKET_MAP.forEach((type, container) -> {
                 var registrar = event.registrar(container.getType().id().getNamespace()).optional();
+                IPayloadHandler<CommonPacketWrapper> handler = buildHandler(container.handler());
                 if (container.packetType() == PacketContainer.PacketType.PLAY)
                 {
-                    registrar.playBidirectional(container.getType(), container.getCodec(), buildHandler(container.handler()));
+                    registrar.playBidirectional(container.getType(),
+                            container.getCodec(),
+                            handler,
+                            handler);
                 }
                 else
                 {
-                    registrar.configurationBidirectional(container.getType(), container.getCodec(), buildHandler(container.handler()));
+                    registrar.configurationBidirectional(container.getType(), container.getCodec(), handler, handler);
                 }
             });
         }
@@ -106,8 +110,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
         }
     }
 
-    private <T, K extends
-            CommonPacketWrapper<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
+    private <T, K extends CommonPacketWrapper<T>> IPayloadHandler<K> buildHandler(Consumer<PacketContext<T>> handler)
     {
         return (payload, ctx) -> {
             try
