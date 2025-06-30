@@ -92,7 +92,6 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     @SuppressWarnings("unchecked")
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
-        Constants.LOG.info("Sending packet {} to client from side: {}", packet.getClass(), this.side);
         PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
         if (container != null)
         {
