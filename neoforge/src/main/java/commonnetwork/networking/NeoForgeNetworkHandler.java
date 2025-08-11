@@ -35,7 +35,7 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
     }
 
     @SubscribeEvent
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public void register(final RegisterPayloadHandlersEvent event)
     {
         if (!PACKET_MAP.isEmpty())
