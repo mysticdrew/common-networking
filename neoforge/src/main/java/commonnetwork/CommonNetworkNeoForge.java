@@ -19,7 +19,7 @@ public class CommonNetworkNeoForge
     {
 
         eventBus.addListener(this::commonSetupEvent);
-        handler = new NeoForgeNetworkHandler(FMLLoader.getDist().isClient() ? Side.CLIENT : Side.SERVER);
+        handler = new NeoForgeNetworkHandler(FMLLoader.getCurrent().getDist().isClient() ? Side.CLIENT : Side.SERVER);
         eventBus.register(handler);
     }
 
