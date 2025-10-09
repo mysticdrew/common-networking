@@ -15,6 +15,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 public class FabricNetworkHandler extends PacketRegistrationHandler
 {
@@ -103,6 +104,24 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
             }
         }
     }
+
+	 @Override
+	 public <T> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet){
+		 PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+		 if (container != null) {
+			 return new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet));
+		 }
+		 return null;
+	 }
+
+	 @Override
+	 public <T> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet){
+		 PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+		 if (container != null) {
+			 return new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet));
+		 }
+		 return null;
+	 }
 
     @SuppressWarnings("unchecked")
     public <T> void sendToServer(T packet, boolean ignoreCheck)
