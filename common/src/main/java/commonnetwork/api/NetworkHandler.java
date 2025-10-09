@@ -2,12 +2,15 @@ package commonnetwork.api;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -33,6 +36,7 @@ public interface NetworkHandler
      * @param <T>         - The packet
      */
     <T> void sendToServer(T packet, boolean ignoreCheck);
+
 
     /**
      * Sends the packet to the client player, only if the player has the packet registered.
@@ -64,6 +68,24 @@ public interface NetworkHandler
      * @param <T>        - The packet
      */
     <T> void send(T packet, Connection connection);
+
+	/**
+	 * Generates a ClientboundCustomPayloadPacket
+	 *
+	 * @param packet     - the packet
+	 * @param <T>        - The packet
+	 * @return           - The packet wrapped into a ClientboundCustomPayloadPacket
+	 */
+	 <T> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet);
+
+	/**
+	 * Generates a ServerboundCustomPayloadPacket
+	 *
+	 * @param packet     - the packet
+	 * @param <T>        - The packet
+	 * @return           - The packet wrapped into a ServerboundCustomPayloadPacket
+	 */
+	 <T> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet);
 
     /**
      * Sends the packet to the client players, only if the players has the packet registered.
