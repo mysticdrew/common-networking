@@ -15,6 +15,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.LogicalSide;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadHandler;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -88,6 +89,24 @@ public class NeoForgeNetworkHandler extends PacketRegistrationHandler
             }
         }
     }
+
+	 @Override
+	 public <T> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet){
+		 PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+		 if (container != null) {
+			 return new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet));
+		 }
+		 return null;
+	 }
+
+	 @Override
+	 public <T> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet){
+		 PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
+		 if (container != null) {
+			 return new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet));
+		 }
+		 return null;
+	 }
 
     @SuppressWarnings("unchecked")
     public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
