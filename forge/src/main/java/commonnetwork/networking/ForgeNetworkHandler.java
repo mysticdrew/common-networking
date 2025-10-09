@@ -8,11 +8,16 @@ import commonnetwork.networking.data.Side;
 import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.NetworkProtocol;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -117,6 +122,28 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
             channel.send(new CommonPacketWrapper(message.container, packet), connection);
         }
     }
+
+
+
+	@Override
+	public <T> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet){
+		var message = (Message<T>) CHANNELS.get(packet.getClass());
+		if (message != null)
+		{
+			return (ClientboundCustomPayloadPacket) ((Object) NetworkProtocol.PLAY.buildPacket(PacketFlow.CLIENTBOUND, message.channel(), new CommonPacketWrapper<>(message.container, packet)));
+		}
+		return null;
+	}
+
+	@Override
+	public <T> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet){
+		var message = (Message<T>) CHANNELS.get(packet.getClass());
+		if (message != null)
+		{
+			return (ServerboundCustomPayloadPacket) ((Object) NetworkProtocol.PLAY.buildPacket(PacketFlow.SERVERBOUND, message.channel(), new CommonPacketWrapper<>(message.container, packet)));
+		}
+		return null;
+	}
 
     private static void handle(CustomPacketPayload customPacketPayload, CustomPayloadEvent.Context ctx)
     {
