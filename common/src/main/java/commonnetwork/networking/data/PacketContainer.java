@@ -3,7 +3,7 @@ package commonnetwork.networking.data;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -20,7 +20,7 @@ public record PacketContainer<T>(
 {
     //TODO: Removing for mc 1.21.2 or 1.22
     @Deprecated(forRemoval = true)
-    public PacketContainer(ResourceLocation id,
+    public PacketContainer(Identifier id,
                            Class<T> classType,
                            BiConsumer<T, FriendlyByteBuf> encoder,
                            Function<FriendlyByteBuf, T> decoder,

@@ -5,11 +5,11 @@ import commonnetwork.networking.data.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ExamplePacketTwo
 {
-    public static final ResourceLocation CHANNEL = new ResourceLocation(Constants.MOD_ID, "example_packet_two");
+    public static final Identifier CHANNEL = new Identifier(Constants.MOD_ID, "example_packet_two");
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ExamplePacketTwo> STREAM_CODEC = StreamCodec.ofMember(ExamplePacketTwo::encode, ExamplePacketTwo::new);
 

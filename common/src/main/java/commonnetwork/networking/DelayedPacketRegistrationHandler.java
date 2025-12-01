@@ -6,7 +6,7 @@ import commonnetwork.networking.data.Side;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +31,7 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     }
 
     @Override
-    public <T> PacketRegistrar registerPacket(ResourceLocation id, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
+    public <T> PacketRegistrar registerPacket(Identifier id, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(id, packetClass, encoder, decoder, handler);
         QUEUED_PACKET_MAP.put(packetClass, container);
