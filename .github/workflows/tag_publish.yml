@@ -10,15 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - name: Set up Java
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          version: 21
+          java-version: 21
+          distribution: temurin
+          cache: gradle
 
       - name: Gradle Build
         run: /bin/sh ./gradlew build
 
       - name: Gradle Publish
         run: /bin/sh ./gradlew -Pdeploy.user=${{ secrets.DEPLOY_USER }} -Pdeploy.password=${{ secrets.DEPLOY_PASSWORD }} publish
+
+      - name: Gradle Build
+        run: /bin/sh ./gradlew publishCurseForge -Pcurseforge_api_key=${{ secrets.CURSEFORGE_KEY }}
+
+      - name: Modrinth Publish
+        run: /bin/sh ./gradlew modrinth -Pmodrinth_api_key=${{ secrets.MODRINTH_KEY }}
