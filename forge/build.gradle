@@ -32,7 +32,10 @@ apply plugin: "com.modrinth.minotaur"
 
 version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
-base.archivesName = "${project.base_name}" + "-forge"
+
+def baseName = "${project.base_name}" + "-forge"
+base.archivesName = baseName
+
 boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
 
 // Disables Gradle's custom module metadata from being published to maven. The
@@ -168,7 +171,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId project.group
-            artifact base.archivesName
+            artifactId baseName
             version project.version
             artifact jar
 
@@ -196,7 +199,7 @@ task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge)
 
     apiToken = "${curseForgeApiKey}"
     def mainFile = upload(curseforge_project_id, jar)
-    mainFile.displayName = "${base.archivesName}-${version}"
+    mainFile.displayName = "${baseName}-${version}"
     mainFile.releaseType = release_type
     mainFile.addModLoader("Forge")
     mainFile.addJavaVersion("Java 21")
@@ -211,7 +214,7 @@ modrinth {
     token = "${modrinthApiKey}"
     projectId = modrinth_project_id
     versionNumber = "${version}"
-    versionName = "${base.archivesName}-${version}"
+    versionName = "${baseName}-${version}"
     versionType = release_type
     uploadFile = jar
     gameVersions = ["${project.minecraft_version}"]

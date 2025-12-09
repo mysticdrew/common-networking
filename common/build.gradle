@@ -7,7 +7,9 @@ plugins {
 
 version = "${project.version}-${project.minecraft_version}"
 group = project.group_id
-base.archivesName = "${project.base_name}" + "-common"
+
+def baseName = "${project.base_name}" + "-common"
+base.archivesName = baseName
 boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
 
 test {
@@ -68,9 +70,9 @@ publishing {
         }
     }
     publications {
-        mavenJava(MavenPublication) {
+        maven(MavenPublication) {
             groupId project.group
-            artifact base.archivesName
+            artifactId baseName
             version project.version
             from components.java
         }
