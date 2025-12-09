@@ -148,7 +148,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId project.group
-            artifact baseName
+            artifactId baseName
             version project.version
             artifact jar
 
