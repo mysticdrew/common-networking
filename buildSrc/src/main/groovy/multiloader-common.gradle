@@ -3,8 +3,9 @@ plugins {
     id 'maven-publish'
 }
 
+boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
 base {
-    archivesName = "${mod_id}-${project.name}-${minecraft_version}"
+    archivesName = "${base_name}-${project.name}"
 }
 
 java {
@@ -65,6 +66,7 @@ sourcesJar {
 }
 
 jar {
+    dependsOn 'processDocs'
     from(rootProject.file('LICENSE')) {
         rename { "${it}_${mod_name}" }
     }
@@ -85,37 +87,50 @@ jar {
     }
 }
 
-//processResources {
-//    var expandProps = [
-//            'version'                      : version,
-//            'group'                        : project.group, //Else we target the task's group.
-//            'minecraft_version'            : minecraft_version,
-//            'fabric_api_version'           : fabric_api_version,
-//            'fabric_loader_version'        : fabric_loader_version,
-//            'mod_name'                     : mod_name,
-//            'mod_author'                   : mod_author,
-//            'mod_id'                       : mod_id,
-//            'license'                      : "MIT",
-//            'description'                  : project.description,
-//            'neoforge_version'             : neoforge_version,
-//            "forge_version"                : forge_version,
-//            'java_version'                 : java_version
-//    ]
-//
-//    var jsonExpandProps = expandProps.collectEntries {
-//        key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
-//    }
-//
-//    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
-//        expand expandProps
-//    }
-//
-//    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
-//        expand jsonExpandProps
-//    }
-//
-//    inputs.properties(expandProps)
-//}
+tasks.named("processDoc", Copy) {
+    // update docs
+    from(file("$rootDir/doc/")) {
+        include '*.html'
+        expand 'version': project.version,
+                'date': getDate(),
+                'mcversion': project.minecraft_version,
+                'loaderversion': project.forge_version,
+                'loadername': "Forge"
+    }
+    into "$project.buildDir/doc"
+}
+
+processResources {
+    var expandProps = [
+            'version'                      : version,
+            'group'                        : project.group, //Else we target the task's group.
+            'minecraft_version'            : minecraft_version,
+            'fabric_api_version'           : fabric_api_version,
+            'fabric_loader_version'        : fabric_loader_version,
+            'mod_name'                     : mod_name,
+            'mod_author'                   : mod_author,
+            'mod_id'                       : mod_id,
+            'license'                      : "MIT",
+            'description'                  : project.description,
+            'neoforge_version'             : neoforge_version,
+            "forge_version"                : forge_version,
+            'java_version'                 : java_version
+    ]
+
+    var jsonExpandProps = expandProps.collectEntries {
+        key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
+    }
+
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+        expand expandProps
+    }
+
+    filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
+        expand jsonExpandProps
+    }
+
+    inputs.properties(expandProps)
+}
 def getDate() {
     def date = new Date()
     def formattedDate = date.format(project.dateFormat)
@@ -128,9 +143,23 @@ publishing {
             from components.java
         }
     }
-    repositories {
-        maven {
-            url System.getenv('local_maven_url')
+    if (localBuild) {
+        repositories {
+            maven {
+                url System.getenv("local_maven_url") // or `url "file://" + System.getenv("local_maven")`
+            }
+        }
+    } else {
+        repositories {
+            maven {
+                name = "CommonNetworking"
+                url = uri("https://jm.gserv.me/repository/maven-releases/")
+
+                credentials {
+                    username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
+                    password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
+                }
+            }
         }
     }
 }
