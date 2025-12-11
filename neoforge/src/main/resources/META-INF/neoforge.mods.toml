@@ -3,7 +3,7 @@ loaderVersion = "[2,)"
 license = "MIT"
 [[mods]]
 modId = "commonnetworking"
-version = "${file.jarVersion}"
+version = "${version}"
 displayName = "Common Networking"
 logoFile = "assets/icon.png"
 credits = "Jared for multiloader"

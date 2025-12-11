@@ -1,96 +1,32 @@
-buildscript {
-    repositories {
-        mavenCentral()
-
-        maven {
-            name = "forge"
-            url = "https://maven.minecraftforge.net"
-        }
-        maven {
-            url = 'https://maven.parchmentmc.org'
-        }
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        maven {
-            url = 'https://repo.spongepowered.org/maven'
-        }
-    }
-
-    dependencies {
-        classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
-    }
-}
 plugins {
-    id 'java'
-    id 'eclipse'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '6.0.23+'
+    id 'multiloader-loader'
+    id 'net.minecraftforge.gradle' version '7.0.0-beta.46'
     id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'com.modrinth.minotaur' version '[2,3)'
 }
-apply plugin: "com.modrinth.minotaur"
 
-version = "${project.version}-${project.minecraft_version}"
-group = project.group_id
+repositories {
+    maven minecraft.mavenizer
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    maven { url "https://repo.spongepowered.org/maven" }
+    mavenCentral()
+    mavenLocal()
+}
 
 def baseName = "${project.base_name}" + "-forge"
 base.archivesName = baseName
 
-boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
-
-// Disables Gradle's custom module metadata from being published to maven. The
-// metadata includes mapped dependencies which are not reasonably consumable by
-// other mod developers.
-tasks.withType(GenerateModuleMetadata) {
-    enabled = false
-}
-
-minecraft.reobf = false
-
 minecraft {
     mappings channel: 'official', version: minecraft_version
     runs {
-        client {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modClientRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
+        register('client') {
+            workingDir.convention layout.projectDirectory.dir('run')
         }
 
-        server {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modServerRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-            taskName 'Data'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modDataRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
+        register('server') {
+            workingDir.convention layout.projectDirectory.dir('run')
+            args '--nogui'
         }
     }
 }
@@ -98,93 +34,35 @@ minecraft {
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    annotationProcessor 'net.minecraftforge:eventbus-validator:7.0-beta.10'
     // Hack fix for now, force jopt-simple to be exactly 5.0.4 because Mojang ships that version, but some transtive dependencies request 6.0+
     implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
-    compileOnly project(":common")
 }
 
-tasks.withType(JavaCompile).configureEach {
-    source(project(":common").sourceSets.main.allSource)
-    options.encoding = "UTF-8"
+sourceSets.each {
+    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
+    it.output.resourcesDir = dir
+    it.java.destinationDirectory = dir
 }
 
-tasks.withType(Javadoc).configureEach {
-    source(project(":common").sourceSets.main.allJava)
-}
-
-tasks.named("sourcesJar", Jar) {
-    from(project(":common").sourceSets.main.allSource)
-}
-processResources {
-    from project(":common").sourceSets.main.resources
-}
-
-jar {
-    dependsOn 'processDocs'
-    manifest {
-        attributes([
-                "Specification-Title"     : project.name,
-                "Specification-Vendor"    : project.group_id,
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : project.group_id,
-                "Implementation-Timestamp": getDate(),
-        ])
-    }
-}
-
-task processDocs(type: Copy) {
-    // update docs
-    from(file("$rootDir/doc/")) {
-        include '*.html'
-        expand 'version': project.version,
-                'date': getDate(),
-                'mcversion': project.minecraft_version,
-                'loaderversion': project.forge_version,
-                'loadername': "Forge"
-    }
-    into "$project.buildDir/doc"
-}
-
-publishing {
-    if (localBuild) {
-        repositories {
-            maven {
-                url System.getenv("local_maven_url") // or `url "file://" + System.getenv("local_maven")`
-            }
+// Implement mcgradleconventions loader attribute
+def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+['apiElements', 'runtimeElements', 'sourcesElements', 'javadocElements'].each { variant ->
+    configurations.named("$variant") {
+        attributes {
+            attribute(loaderAttribute, 'forge')
         }
-    } else {
-        repositories {
-            maven {
-                name = "CommonNetworking"
-                url = uri("https://jm.gserv.me/repository/maven-releases/")
-
-                credentials {
-                    username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
-                    password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
-                }
+    }
+}
+sourceSets.configureEach {
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
+        configurations.named("$variant") {
+            attributes {
+                attribute(loaderAttribute, 'forge')
             }
         }
     }
-    publications {
-        mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId baseName
-            version project.version
-            artifact jar
-
-            artifact project.sourcesJar {
-                archiveClassifier.set("sources")
-            }
-
-            artifact project.javadocJar {
-                archiveClassifier.set("javadoc")
-            }
-        }
-    }
-
 }
 
 // Automated upload to CurseForge for the win!
@@ -222,22 +100,3 @@ modrinth {
     changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
 }
 
-// Ensure build is done prior to cursegradle tasks
-project.afterEvaluate {
-    project.tasks.findAll { task ->
-        (task.name.startsWith('curseforge') || task.name.startsWith('modrinth'))
-                && (task.name != 'curseforge' || task.name != 'modrinth')
-    }.each { projectTask ->
-        projectTask.dependsOn build
-    }
-}
-
-// Merge the resources and classes into the same directory.
-// This is done because java expects modules to be in a single directory.
-// And if we have it in multiple we have to do performance intensive hacks like having the UnionFileSystem
-// This will eventually be migrated to ForgeGradle so modders don't need to manually do it. But that is later.
-sourceSets.each {
-    def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
-    it.output.resourcesDir = dir
-    it.java.destinationDirectory = dir
-}
