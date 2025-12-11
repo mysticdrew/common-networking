@@ -4,8 +4,7 @@ plugins {
     id 'multiloader-common'
 }
 
-//version = "${project.version}-${project.minecraft_version}"
-//group = project.group_id
+version = "${project.version}-${project.minecraft_version}"
 
 def baseName = "${project.base_name}" + "-common"
 base.archivesName = baseName
