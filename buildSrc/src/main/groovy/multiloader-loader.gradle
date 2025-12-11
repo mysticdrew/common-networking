@@ -46,9 +46,3 @@ tasks.named('sourcesJar', Jar) {
     dependsOn(configurations.commonResources)
     from(configurations.commonResources)
 }
-
-def getDate() {
-    def date = new Date()
-    def formattedDate = date.format(project.dateFormat)
-    return formattedDate
-}
