@@ -4,6 +4,7 @@ plugins {
 }
 
 boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
+
 base {
     archivesName = "${base_name}-${project.name}"
 }
@@ -57,6 +58,7 @@ repositories {
     publishing.publications.configureEach {
         suppressPomMetadataWarningsFor(variant)
     }
+
 }
 
 sourcesJar {
@@ -87,41 +89,57 @@ jar {
     }
 }
 
-tasks.named("processDoc", Copy) {
+tasks.register('processDocs', Copy) {
+    def loader
+    def loaderVersion
+
+    if ("fabric".equalsIgnoreCase(project.name)) {
+        loaderVersion = fabric_api_version
+        loader = "Fabric"
+    } else if ("neoforge".equalsIgnoreCase(project.name)) {
+        loaderVersion = neoforge_version
+        loader = "NeoForge"
+    } else if ("forge".equalsIgnoreCase(project.name)) {
+        loaderVersion = forge_version
+        loader = "Forge"
+    } else {
+        loaderVersion = "1.0.0"
+        loader = "Common"
+    }
     // update docs
     from(file("$rootDir/doc/")) {
         include '*.html'
         expand 'version': project.version,
                 'date': getDate(),
                 'mcversion': project.minecraft_version,
-                'loaderversion': project.forge_version,
-                'loadername': "Forge"
+                'loaderversion': loaderVersion,
+                'loadername': loader
     }
     into "$project.buildDir/doc"
 }
 
 processResources {
     var expandProps = [
-            'version'                      : version,
-            'group'                        : project.group, //Else we target the task's group.
-            'minecraft_version'            : minecraft_version,
-            'fabric_api_version'           : fabric_api_version,
-            'fabric_loader_version'        : fabric_loader_version,
-            'mod_name'                     : mod_name,
-            'mod_author'                   : mod_author,
-            'mod_id'                       : mod_id,
-            'license'                      : "MIT",
-            'description'                  : project.description,
-            'neoforge_version'             : neoforge_version,
-            "forge_version"                : forge_version,
-            'java_version'                 : java_version
+            'version'              : version,
+            'group'                : group_id, //Else we target the task's group.
+            'minecraft_version'    : minecraft_version,
+            'fabric_api_version'   : fabric_api_version,
+            'fabric_loader_version': fabric_loader_version,
+            'mod_name'             : mod_name,
+            'mod_author'           : mod_author,
+            'mod_id'               : mod_id,
+            'license'              : "MIT",
+            'neoforge_version'     : neoforge_version,
+            "forge_version"        : forge_version,
+            'java_version'         : java_version
     ]
 
     var jsonExpandProps = expandProps.collectEntries {
         key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
     }
 
-    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'doc/changelog.html']) {
         expand expandProps
     }
 
@@ -131,11 +149,13 @@ processResources {
 
     inputs.properties(expandProps)
 }
+
 def getDate() {
     def date = new Date()
     def formattedDate = date.format(project.dateFormat)
     return formattedDate
 }
+
 publishing {
     publications {
         register('mavenJava', MavenPublication) {

@@ -9,7 +9,6 @@ plugins {
 
 def baseName = "${project.base_name}" + "-common"
 base.archivesName = baseName
-boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("buildProfile")))
 
 test {
     useJUnitPlatform()
@@ -56,7 +55,7 @@ def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', Strin
     }
 }
 sourceSets.configureEach {
-    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant->
+    [it.compileClasspathConfigurationName, it.runtimeClasspathConfigurationName].each { variant ->
         configurations.named("$variant") {
             attributes {
                 attribute(loaderAttribute, 'common')
@@ -74,33 +73,3 @@ processResources {
         expand buildProps
     }
 }
-
-//publishing {
-//    if (localBuild) {
-//        repositories {
-//            maven {
-//                url System.getenv("local_maven_url") // or `url "file://" + System.getenv("local_maven")`
-//            }
-//        }
-//    } else {
-//        repositories {
-//            maven {
-//                name = "CommonNetworking"
-//                url = uri("https://jm.gserv.me/repository/maven-releases/")
-//
-//                credentials {
-//                    username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
-//                    password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
-//                }
-//            }
-//        }
-//    }
-//    publications {
-//        maven(MavenPublication) {
-//            groupId project.group
-//            artifactId baseName
-//            version project.version
-//            from components.java
-//        }
-//    }
-//}
