@@ -15,9 +15,6 @@ repositories {
 }
 
 
-version = "${project.version}-${project.minecraft_version}"
-group = project.group_id
-
 def baseName = "${project.base_name}" + "-forge"
 base.archivesName = baseName
 

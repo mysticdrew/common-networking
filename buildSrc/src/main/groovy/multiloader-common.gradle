@@ -8,6 +8,8 @@ boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("bu
 base {
     archivesName = "${base_name}-${project.name}"
 }
+version = "${project.version}-${project.minecraft_version}"
+group = project.group_id
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
