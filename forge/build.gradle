@@ -14,11 +14,8 @@ repositories {
     mavenLocal()
 }
 
-
 def baseName = "${project.base_name}" + "-forge"
 base.archivesName = baseName
-
-
 
 minecraft {
     mappings channel: 'official', version: minecraft_version
