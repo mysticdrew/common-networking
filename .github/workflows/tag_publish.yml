@@ -20,12 +20,12 @@ jobs:
           cache: gradle
 
       - name: Gradle Build
-        run: /bin/sh ./gradlew build
+        run: /bin/sh ./gradlew assemble
 
       - name: Gradle Publish
         run: /bin/sh ./gradlew -Pdeploy.user=${{ secrets.DEPLOY_USER }} -Pdeploy.password=${{ secrets.DEPLOY_PASSWORD }} publish
 
-      - name: Gradle Build
+      - name: CurseForge Publish
         run: /bin/sh ./gradlew publishCurseForge -Pcurseforge_api_key=${{ secrets.CURSEFORGE_KEY }}
 
       - name: Modrinth Publish
