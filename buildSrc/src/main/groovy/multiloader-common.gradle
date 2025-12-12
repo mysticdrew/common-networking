@@ -81,9 +81,9 @@ jar {
                 'Specification-Vendor'    : mod_author,
                 'Specification-Version'   : project.jar.archiveVersion,
                 'Implementation-Title'    : project.name,
-                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Version'  : project.version,
                 'Implementation-Vendor'   : mod_author,
-                'Implementation-Timestamp': getDate().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                'Implementation-Timestamp': this.getDate(),
                 'Timestamp'               : System.currentTimeMillis(),
                 'Built-On-Java'           : "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
                 'Built-On-Minecraft'      : minecraft_version
@@ -112,7 +112,7 @@ tasks.register('processDocs', Copy) {
     from(file("$rootDir/doc/")) {
         include '*.html'
         expand 'version': project.version,
-                'date': getDate(),
+                'date': this.getDate(),
                 'mcversion': project.minecraft_version,
                 'loaderversion': loaderVersion,
                 'loadername': loader
