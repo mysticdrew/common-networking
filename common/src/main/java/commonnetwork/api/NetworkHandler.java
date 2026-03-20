@@ -216,7 +216,7 @@ public interface NetworkHandler
      */
     default <T> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos, boolean ignoreCheck)
     {
-        sendToClientsLoadingChunk(packet, level.getChunk(pos.x, pos.z), ignoreCheck);
+        sendToClientsLoadingChunk(packet, level.getChunk(pos.x(), pos.z()), ignoreCheck);
     }
 
     /**
@@ -243,7 +243,7 @@ public interface NetworkHandler
      */
     default <T> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos, boolean ignoreCheck)
     {
-        sendToClientsLoadingPos(packet, level, new ChunkPos(pos), ignoreCheck);
+        sendToClientsLoadingPos(packet, level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4), ignoreCheck);
     }
 
     /**

@@ -124,7 +124,7 @@ public class Dispatcher
      */
     public static <T> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos)
     {
-        sendToClientsLoadingChunk(packet, level.getChunk(pos.x, pos.z));
+        sendToClientsLoadingChunk(packet, level.getChunk(pos.x(), pos.z()));
     }
 
     /**
@@ -137,7 +137,7 @@ public class Dispatcher
      */
     public static <T> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos)
     {
-        sendToClientsLoadingPos(packet, level, new ChunkPos(pos));
+        sendToClientsLoadingPos(packet, level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
     }
 
     /**

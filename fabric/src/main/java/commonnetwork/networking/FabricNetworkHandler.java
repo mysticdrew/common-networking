@@ -32,13 +32,13 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         {
             if (container.packetType() == PacketContainer.PacketType.PLAY)
             {
-                PayloadTypeRegistry.playC2S().register(container.getType(), container.getCodec());
-                PayloadTypeRegistry.playS2C().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.serverboundPlay().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.clientboundPlay().register(container.getType(), container.getCodec());
             }
             else
             {
-                PayloadTypeRegistry.configurationC2S().register(container.getType(), container.getCodec());
-                PayloadTypeRegistry.configurationS2C().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.serverboundConfiguration().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.clientboundConfiguration().register(container.getType(), container.getCodec());
             }
         }
         catch (IllegalArgumentException e)
