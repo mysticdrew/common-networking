@@ -150,7 +150,7 @@ var jsonExpandProps = expandProps.collectEntries {
 }
 
 processResources {
-    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'doc/changelog.html']) {
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'doc/changelog.html', 'plugin.yml']) {
         expand expandProps
     }
 
@@ -165,7 +165,7 @@ processResources {
 // fabric.mod.json / mods.toml / neoforge.mods.toml get ${version} and friends
 // substituted at build time.
 tasks.named('processTestmodResources', ProcessResources) {
-    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'plugin.yml']) {
         expand expandProps
     }
     filesMatching(['pack.mcmeta', 'fabric.mod.json']) {

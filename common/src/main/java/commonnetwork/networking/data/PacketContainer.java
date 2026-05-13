@@ -65,6 +65,27 @@ public record PacketContainer<T>(
         }
     }
 
+    public void encode(FriendlyByteBuf buf, T packet)
+    {
+        if (this.codec() != null)
+        {
+            this.codec().encode(buf, packet);
+        }
+        else
+        {
+            this.encoder().accept(packet, buf);
+        }
+    }
+
+    public T decode(FriendlyByteBuf buf)
+    {
+        if (this.codec() != null)
+        {
+            return this.codec().decode(buf);
+        }
+        return this.decoder().apply(buf);
+    }
+
     public enum PacketType
     {
         PLAY,

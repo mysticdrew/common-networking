@@ -3,6 +3,7 @@ package commonnetwork.networking;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -17,6 +18,7 @@ import java.util.function.Function;
 public class DelayedPacketRegistrationHandler  implements PacketRegistrar
 {
     private static final Map<Class<?>, PacketContainer<?>> QUEUED_PACKET_MAP = new HashMap<>();
+    private static final Map<Identifier, PacketContainer<?>> QUEUED_PACKET_BY_ID = new HashMap<>();
 
 
     public DelayedPacketRegistrationHandler()
@@ -35,6 +37,7 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     {
         PacketContainer<T> container = new PacketContainer<>(id, packetClass, encoder, decoder, handler);
         QUEUED_PACKET_MAP.put(packetClass, container);
+        QUEUED_PACKET_BY_ID.put(container.type().id(), container);
         return this;
     }
 
@@ -43,6 +46,7 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     {
         PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.PLAY);
         QUEUED_PACKET_MAP.put(packetClass, container);
+        QUEUED_PACKET_BY_ID.put(container.type().id(), container);
         return this;
     }
 
@@ -51,6 +55,7 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     {
         PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.CONFIGURATION);
         QUEUED_PACKET_MAP.put(packetClass, container);
+        QUEUED_PACKET_BY_ID.put(container.type().id(), container);
         return this;
     }
 
@@ -58,8 +63,16 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     {
         if (!QUEUED_PACKET_MAP.isEmpty())
         {
-            packetRegistration.PACKET_MAP.putAll(QUEUED_PACKET_MAP);
-            QUEUED_PACKET_MAP.forEach((aClass, container) -> packetRegistration.registerPacket(container));
+            QUEUED_PACKET_MAP.forEach((aClass, container) ->
+            {
+                if (!packetRegistration.supports(container.packetType()))
+                {
+                    throw new RegistrationException("Backend does not support packet type: " + container.packetType());
+                }
+                packetRegistration.PACKET_MAP.put(aClass, container);
+                packetRegistration.packetById.put(container.type().id(), container);
+                packetRegistration.registerPacket(container);
+            });
         }
     }
 }

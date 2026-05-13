@@ -3,11 +3,13 @@ package example.client;
 import commonnetwork.api.Dispatcher;
 import commonnetwork.api.Network;
 import example.network.ExamplePacketOne;
+import example.network.ExamplePacketRegistration;
 
 public class ExampleModCommonClient
 {
     public ExampleModCommonClient()
     {
+        new ExamplePacketRegistration().init();
     }
 
     /**
