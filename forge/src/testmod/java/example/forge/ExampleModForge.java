@@ -1,26 +1,30 @@
 package example.forge;
 
+import example.Constants;
+import example.ExampleModCommon;
 import example.client.ExampleModCommonClient;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.bus.BusGroup;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
+
+import java.lang.invoke.MethodHandles;
 
 @Mod(Constants.MOD_ID)
-@Mod.EventBusSubscriber(modid = Constants.MOD_ID)
 public class ExampleModForge
 {
-    ExampleModCommon commonMod;
-    ExampleModCommonClient modCommonClient;
+    private final ExampleModCommon commonMod;
+    private final ExampleModCommonClient clientMod;
 
-    public ExampleModForge()
+    public ExampleModForge(FMLJavaModLoadingContext context)
     {
         commonMod = new ExampleModCommon();
-        modCommonClient = new ExampleModCommonClient();
-        MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedInEvent);
-        MinecraftForge.EVENT_BUS.addListener(this::onClientJoined);
+        clientMod = FMLEnvironment.dist.isClient() ? new ExampleModCommonClient() : null;
+        BusGroup.DEFAULT.register(MethodHandles.lookup(), this);
     }
 
     @SubscribeEvent
@@ -35,6 +39,9 @@ public class ExampleModForge
     @SubscribeEvent
     public void onClientJoined(ClientPlayerNetworkEvent.LoggingIn event)
     {
-        modCommonClient.onJoinWorld();
+        if (clientMod != null)
+        {
+            clientMod.onJoinWorld();
+        }
     }
 }

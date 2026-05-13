@@ -2,9 +2,8 @@ package example.network;
 
 import commonnetwork.api.Network;
 
-public class TestRegistration
+public class ExamplePacketRegistration
 {
-
     public void init()
     {
         Network
