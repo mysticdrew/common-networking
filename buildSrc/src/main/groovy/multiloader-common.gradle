@@ -8,7 +8,7 @@ boolean localBuild = (hasProperty("buildProfile") && "local".equals(property("bu
 base {
     archivesName = "${base_name}-${project.name}"
 }
-version = "${project.version}-${project.minecraft_version}"
+version = "${project.minecraft_version}-${project.version}"
 group = project.group_id
 
 java {
@@ -54,7 +54,7 @@ repositories {
     configurations."$variant".outgoing {
         capability("$group:${project.name}:$version")
         capability("$group:${base.archivesName.get()}:$version")
-        capability("$group:$mod_id-${project.name}-${minecraft_version}:$version")
+        capability("$group:$mod_id-${project.name}:$version")
         capability("$group:$mod_id:$version")
     }
     publishing.publications.configureEach {
