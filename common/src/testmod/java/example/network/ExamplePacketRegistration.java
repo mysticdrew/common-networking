@@ -4,7 +4,6 @@ import commonnetwork.api.Network;
 
 public class ExamplePacketRegistration
 {
-
     public void init()
     {
         Network

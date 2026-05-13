@@ -17,6 +17,15 @@ java {
     withJavadocJar()
 }
 
+// Example mod (testmod) source set. Verifies the library compiles against itself,
+// gives IDE-runnable entry points for each loader, and is NEVER published to maven.
+sourceSets {
+    testmod {
+        compileClasspath += main.output + main.compileClasspath
+        runtimeClasspath += main.output + main.runtimeClasspath
+    }
+}
+
 repositories {
     mavenCentral()
     // https://docs.gradle.org/current/userguide/declaring_repositories.html#declaring_content_exclusively_found_in_one_repository
@@ -120,27 +129,27 @@ tasks.register('processDocs', Copy) {
     into "$project.buildDir/doc"
 }
 
+// Properties available to both processResources and processTestmodResources.
+var expandProps = [
+        'version'              : version,
+        'group'                : group_id, //Else we target the task's group.
+        'minecraft_version'    : minecraft_version,
+        'fabric_api_version'   : fabric_api_version,
+        'fabric_loader_version': fabric_loader_version,
+        'mod_name'             : mod_name,
+        'mod_author'           : mod_author,
+        'mod_id'               : mod_id,
+        'license'              : "MIT",
+        'neoforge_version'     : neoforge_version,
+        "forge_version"        : forge_version,
+        'java_version'         : java_version
+]
+
+var jsonExpandProps = expandProps.collectEntries {
+    key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
+}
+
 processResources {
-    var expandProps = [
-            'version'              : version,
-            'group'                : group_id, //Else we target the task's group.
-            'minecraft_version'    : minecraft_version,
-            'fabric_api_version'   : fabric_api_version,
-            'fabric_loader_version': fabric_loader_version,
-            'mod_name'             : mod_name,
-            'mod_author'           : mod_author,
-            'mod_id'               : mod_id,
-            'license'              : "MIT",
-            'neoforge_version'     : neoforge_version,
-            "forge_version"        : forge_version,
-            'java_version'         : java_version
-    ]
-
-    var jsonExpandProps = expandProps.collectEntries {
-        key, value -> [(key): value instanceof String ? value.replace("\n", "\\\\n") : value]
-    }
-
-
     filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'doc/changelog.html']) {
         expand expandProps
     }
@@ -149,6 +158,19 @@ processResources {
         expand jsonExpandProps
     }
 
+    inputs.properties(expandProps)
+}
+
+// Mirror the variable expansion onto the testmod resources so the example mod's
+// fabric.mod.json / mods.toml / neoforge.mods.toml get ${version} and friends
+// substituted at build time.
+tasks.named('processTestmodResources', ProcessResources) {
+    filesMatching(['META-INF/mods.toml', 'META-INF/neoforge.mods.toml']) {
+        expand expandProps
+    }
+    filesMatching(['pack.mcmeta', 'fabric.mod.json']) {
+        expand jsonExpandProps
+    }
     inputs.properties(expandProps)
 }
 

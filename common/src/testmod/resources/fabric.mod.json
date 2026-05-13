@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "examplemod",
+  "version": "${version}",
+  "name": "Common Networking Example",
+  "description": "Demo mod that exercises the Common Networking library on Fabric.",
+  "authors": [
+    "${mod_author}"
+  ],
+  "license": "MIT",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "example.fabric.ExampleModFabric"
+    ],
+    "client": [
+      "example.fabric.ExampleModFabric"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.14",
+    "fabric-api": "*",
+    "minecraft": ">=1.19.4",
+    "java": ">=17",
+    "${mod_id}": "*"
+  }
+}

@@ -17,6 +17,7 @@ neoForge {
         accessTransformers.add(at.absolutePath)
     }
     addModdingDependenciesTo(sourceSets["test"])
+    addModdingDependenciesTo(sourceSets["testmod"])
     // parchment not available for 26.1 (unobfuscated); omit the block
     runs {
         configureEach {
@@ -27,15 +28,20 @@ neoForge {
         client {
             client()
             gameDirectory = project.file('run/client')
+            sourceSet = sourceSets.testmod
         }
         server {
             server()
             gameDirectory = project.file("run/server")
+            sourceSet = sourceSets.testmod
         }
     }
     mods {
         "${mod_id}" {
             sourceSet sourceSets.main
+        }
+        examplemod {
+            sourceSet sourceSets.testmod
         }
     }
 }

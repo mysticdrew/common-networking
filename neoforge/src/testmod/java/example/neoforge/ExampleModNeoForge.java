@@ -1,25 +1,28 @@
-import commonnetwork.Constants;
+package example.neoforge;
+
+import example.Constants;
+import example.ExampleModCommon;
+import example.client.ExampleModCommonClient;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 @Mod(Constants.MOD_ID)
-@EventBusSubscriber(modid = Constants.MOD_ID)
-public class ExampleModForge
+public class ExampleModNeoForge
 {
-    ExampleModCommon commonMod;
-    ExampleModCommonClient modCommonClient;
+    private final ExampleModCommon commonMod;
+    private final ExampleModCommonClient clientMod;
 
-    public ExampleModForge(IEventBus eventBus)
+    public ExampleModNeoForge(IEventBus eventBus)
     {
         commonMod = new ExampleModCommon();
-        modCommonClient = new ExampleModCommonClient();
-        eventBus.addListener(this::onPlayerLoggedInEvent);
-        eventBus.addListener(this::onClientJoined);
+        clientMod = new ExampleModCommonClient();
+        NeoForge.EVENT_BUS.addListener(this::onPlayerLoggedInEvent);
+        NeoForge.EVENT_BUS.addListener(this::onClientJoined);
     }
 
     @SubscribeEvent
@@ -34,6 +37,6 @@ public class ExampleModForge
     @SubscribeEvent
     public void onClientJoined(ClientPlayerNetworkEvent.LoggingIn event)
     {
-        modCommonClient.onJoinWorld();
+        clientMod.onJoinWorld();
     }
 }

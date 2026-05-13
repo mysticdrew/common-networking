@@ -21,12 +21,22 @@ minecraft {
 //    mappings channel: 'official', version: minecraft_version
     runs {
         register('client') {
-            workingDir.convention layout.projectDirectory.dir('run')
+            workingDir.convention layout.projectDirectory.dir('run/client')
+            mods {
+                examplemod {
+                    source sourceSets.testmod
+                }
+            }
         }
 
         register('server') {
-            workingDir.convention layout.projectDirectory.dir('run')
+            workingDir.convention layout.projectDirectory.dir('run/server')
             args '--nogui'
+            mods {
+                examplemod {
+                    source sourceSets.testmod
+                }
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ test {
 
 neoForge {
     neoFormVersion = neo_form_version
+    addModdingDependenciesTo(sourceSets["testmod"])
 }
 
 dependencies {

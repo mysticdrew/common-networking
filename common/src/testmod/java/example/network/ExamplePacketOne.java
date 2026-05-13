@@ -2,6 +2,7 @@ package example.network;
 
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import example.Constants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -11,8 +12,7 @@ import net.minecraft.resources.Identifier;
 
 public class ExamplePacketOne implements CustomPacketPayload
 {
-    public static final Identifier CHANNEL = new Identifier(Constants.MOD_ID, "example_packet_one");
-    public static final CustomPacketPayload.Type<ExamplePacketOne> TYPE = new CustomPacketPayload.Type<>(CHANNEL);
+    public static final CustomPacketPayload.Type<ExamplePacketOne> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Constants.MOD_ID, "example_packet_one"));
     public static final StreamCodec<FriendlyByteBuf, ExamplePacketOne> STREAM_CODEC = StreamCodec.ofMember(ExamplePacketOne::encode, ExamplePacketOne::new);
 
     public ExamplePacketOne()
@@ -25,11 +25,10 @@ public class ExamplePacketOne implements CustomPacketPayload
 
     public void encode(FriendlyByteBuf buf)
     {
-
     }
 
     @Override
-    public CustomPacketPayload.Type<? extends CustomPacketPayload> type()
+    public Type<? extends CustomPacketPayload> type()
     {
         return TYPE;
     }
@@ -38,7 +37,7 @@ public class ExamplePacketOne implements CustomPacketPayload
     {
         if (Side.CLIENT.equals(ctx.side()))
         {
-            Minecraft.getInstance().player.sendSystemMessage(Component.literal("ExamplePacketOne on the client!"));
+            Minecraft.getInstance().player.sendSystemMessage(Component.literal("ExamplePacketOne received on the client!"));
         }
         else
         {

@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[44,)"
+license = "MIT"
+[[mods]]
+modId = "examplemod"
+version = "${version}"
+displayName = "Common Networking Example"
+authors = "${mod_author}"
+description = '''
+Demo mod that exercises the Common Networking library on Forge.
+'''
+[[dependencies.examplemod]]
+modId = "forge"
+mandatory = true
+versionRange = "[45,)"
+ordering = "NONE"
+side = "BOTH"
+[[dependencies.examplemod]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.19.4,)"
+ordering = "NONE"
+side = "BOTH"
+[[dependencies.examplemod]]
+modId = "${mod_id}"
+mandatory = true
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"

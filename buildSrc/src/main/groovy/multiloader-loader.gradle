@@ -23,6 +23,11 @@ dependencies {
     }
     commonJava project(path: ':common', configuration: 'commonJava')
     commonResources project(path: ':common', configuration: 'commonResources')
+
+    // The example mod lives in :common's testmod source set; mirror it here so
+    // the IDE attributes the example classes to this loader project (no phantom
+    // imports) and gradle compiles the shared sources in one pass per loader.
+    testmodImplementation sourceSets.main.output
 }
 
 tasks.named('compileJava', JavaCompile) {
@@ -45,4 +50,25 @@ tasks.named('sourcesJar', Jar) {
     from(configurations.commonJava)
     dependsOn(configurations.commonResources)
     from(configurations.commonResources)
+}
+
+// Pull common/src/testmod sources/resources into this loader's testmod source
+// set so the IDE sees the shared example code as part of this loader project.
+sourceSets {
+    testmod {
+        java.srcDirs += project(':common').file('src/testmod/java')
+        resources.srcDirs += project(':common').file('src/testmod/resources')
+    }
+}
+
+// Package the testmod into its own jar so it's runnable, but keep it out of the
+// maven publication (publishing { publications.mavenJava.from components.java }
+// in multiloader-common only includes the main component).
+tasks.register('testmodJar', Jar) {
+    archiveClassifier = 'testmod'
+    from sourceSets.testmod.output
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('testmodJar')
 }

@@ -10,9 +10,14 @@ public class ExampleModCommonClient
     {
     }
 
-    public void onJoinWorld() {
+    /**
+     * Fire a packet to the server when the player finishes joining a world.
+     * Demonstrates both call styles — Dispatcher (static) and the handler ref.
+     */
+    public void onJoinWorld()
+    {
         Dispatcher.sendToServer(new ExamplePacketOne());
-        // either works fine.
+        // Equivalent to the static call above.
         Network.getNetworkHandler().sendToServer(new ExamplePacketOne());
     }
 }

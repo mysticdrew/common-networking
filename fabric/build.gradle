@@ -15,18 +15,25 @@ dependencies {
 }
 
 loom {
+    mods {
+        register('examplemod') {
+            sourceSet sourceSets.testmod
+        }
+    }
     runs {
         client {
             client()
             setConfigName("Fabric Client")
             ideConfigGenerated(true)
-            runDir("run")
+            runDir("run/client")
+            source sourceSets.testmod
         }
         server {
             server()
             setConfigName("Fabric Server")
             ideConfigGenerated(true)
-            runDir("run")
+            runDir("run/server")
+            source sourceSets.testmod
         }
     }
 }

@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+license = "MIT"
+[[mods]]
+modId = "examplemod"
+version = "${version}"
+displayName = "Common Networking Example"
+authors = "${mod_author}"
+description = '''
+Demo mod that exercises the Common Networking library on NeoForge.
+'''
+[[dependencies.examplemod]]
+modId = "neoforge"
+type = "required"
+versionRange = "[20.4.70-beta,)"
+ordering = "NONE"
+side = "BOTH"
+[[dependencies.examplemod]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.20.5,)"
+ordering = "NONE"
+side = "BOTH"
+[[dependencies.examplemod]]
+modId = "${mod_id}"
+type = "required"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"
