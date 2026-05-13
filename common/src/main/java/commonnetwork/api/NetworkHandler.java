@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
@@ -20,9 +21,9 @@ public interface NetworkHandler
      * Sends the packet to the server, if the server has the packet registered.
      *
      * @param packet - the packet
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToServer(T packet)
+    default <T extends CustomPacketPayload> void sendToServer(T packet)
     {
         sendToServer(packet, false);
     }
@@ -33,9 +34,9 @@ public interface NetworkHandler
      *
      * @param packet      - the packet
      * @param ignoreCheck - ignore the check if the server has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    <T> void sendToServer(T packet, boolean ignoreCheck);
+    <T extends CustomPacketPayload> void sendToServer(T packet, boolean ignoreCheck);
 
 
     /**
@@ -43,58 +44,58 @@ public interface NetworkHandler
      *
      * @param packet - the packet
      * @param player - the player
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToClient(T packet, ServerPlayer player)
+    default <T extends CustomPacketPayload> void sendToClient(T packet, ServerPlayer player)
     {
         sendToClient(packet, player, false);
     }
 
     /**
-     * Sends the packet to the client player..
+     * Sends the packet to the client player.
      *
      * @param packet      - the packet
      * @param player      - the player
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck);
+    <T extends CustomPacketPayload> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck);
 
     /**
      * Sends the packet to the connection.
      *
      * @param packet     - the packet
      * @param connection - the connection
-     * @param <T>        - The packet
+     * @param <T>        - The packet type
      */
-    <T> void send(T packet, Connection connection);
+    <T extends CustomPacketPayload> void send(T packet, Connection connection);
 
-	/**
-	 * Generates a ClientboundCustomPayloadPacket
-	 *
-	 * @param packet     - the packet
-	 * @param <T>        - The packet
-	 * @return           - The packet wrapped into a ClientboundCustomPayloadPacket
-	 */
-	 <T> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet);
+    /**
+     * Generates a ClientboundCustomPayloadPacket
+     *
+     * @param packet - the packet
+     * @param <T>    - The packet type
+     * @return The packet wrapped into a ClientboundCustomPayloadPacket
+     */
+    <T extends CustomPacketPayload> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet);
 
-	/**
-	 * Generates a ServerboundCustomPayloadPacket
-	 *
-	 * @param packet     - the packet
-	 * @param <T>        - The packet
-	 * @return           - The packet wrapped into a ServerboundCustomPayloadPacket
-	 */
-	 <T> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet);
+    /**
+     * Generates a ServerboundCustomPayloadPacket
+     *
+     * @param packet - the packet
+     * @param <T>    - The packet type
+     * @return The packet wrapped into a ServerboundCustomPayloadPacket
+     */
+    <T extends CustomPacketPayload> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet);
 
     /**
      * Sends the packet to the client players, only if the players has the packet registered.
      *
      * @param packet  - the packet
      * @param players - the players
-     * @param <T>     - The packet
+     * @param <T>     - The packet type
      */
-    default <T> void sendToClients(T packet, List<ServerPlayer> players)
+    default <T extends CustomPacketPayload> void sendToClients(T packet, List<ServerPlayer> players)
     {
         sendToClients(packet, players, false);
     }
@@ -105,9 +106,9 @@ public interface NetworkHandler
      * @param packet      - the packet
      * @param players     - the players
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToClients(T packet, List<ServerPlayer> players, boolean ignoreCheck)
+    default <T extends CustomPacketPayload> void sendToClients(T packet, List<ServerPlayer> players, boolean ignoreCheck)
     {
         for (ServerPlayer player : players)
         {
@@ -120,9 +121,9 @@ public interface NetworkHandler
      *
      * @param packet - the packet
      * @param server - the server
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToAllClients(T packet, MinecraftServer server)
+    default <T extends CustomPacketPayload> void sendToAllClients(T packet, MinecraftServer server)
     {
         sendToAllClients(packet, server, false);
     }
@@ -133,9 +134,9 @@ public interface NetworkHandler
      * @param packet      - the packet
      * @param server      - the server
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToAllClients(T packet, MinecraftServer server, boolean ignoreCheck)
+    default <T extends CustomPacketPayload> void sendToAllClients(T packet, MinecraftServer server, boolean ignoreCheck)
     {
         sendToClients(packet, server.getPlayerList().getPlayers(), ignoreCheck);
     }
@@ -145,9 +146,9 @@ public interface NetworkHandler
      *
      * @param packet - the packet
      * @param level  - the level
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToClientsInLevel(T packet, ServerLevel level)
+    default <T extends CustomPacketPayload> void sendToClientsInLevel(T packet, ServerLevel level)
     {
         sendToClientsInLevel(packet, level, false);
     }
@@ -158,10 +159,9 @@ public interface NetworkHandler
      * @param packet      - the packet
      * @param level       - the level
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToClientsInLevel(T packet, ServerLevel level, boolean ignoreCheck)
-
+    default <T extends CustomPacketPayload> void sendToClientsInLevel(T packet, ServerLevel level, boolean ignoreCheck)
     {
         sendToClients(packet, level.players(), ignoreCheck);
     }
@@ -171,9 +171,9 @@ public interface NetworkHandler
      *
      * @param packet - the packet
      * @param chunk  - the chunk
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToClientsLoadingChunk(T packet, LevelChunk chunk)
+    default <T extends CustomPacketPayload> void sendToClientsLoadingChunk(T packet, LevelChunk chunk)
     {
         sendToClientsLoadingChunk(packet, chunk, false);
     }
@@ -184,9 +184,9 @@ public interface NetworkHandler
      * @param packet      - the packet
      * @param chunk       - the chunk
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToClientsLoadingChunk(T packet, LevelChunk chunk, boolean ignoreCheck)
+    default <T extends CustomPacketPayload> void sendToClientsLoadingChunk(T packet, LevelChunk chunk, boolean ignoreCheck)
     {
         ServerChunkCache chunkCache = (ServerChunkCache) chunk.getLevel().getChunkSource();
         sendToClients(packet, chunkCache.chunkMap.getPlayers(chunk.getPos(), false), ignoreCheck);
@@ -198,9 +198,9 @@ public interface NetworkHandler
      * @param packet - the packet
      * @param level  - the level
      * @param pos    - the chunkpos
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos)
+    default <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos)
     {
         sendToClientsLoadingPos(packet, level, pos, false);
     }
@@ -212,9 +212,9 @@ public interface NetworkHandler
      * @param level       - the level
      * @param pos         - the chunkpos
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos, boolean ignoreCheck)
+    default <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos, boolean ignoreCheck)
     {
         sendToClientsLoadingChunk(packet, level.getChunk(pos.x(), pos.z()), ignoreCheck);
     }
@@ -225,9 +225,9 @@ public interface NetworkHandler
      * @param packet - the packet
      * @param level  - the level
      * @param pos    - the blockpos
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos)
+    default <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos)
     {
         sendToClientsLoadingPos(packet, level, pos, false);
     }
@@ -239,9 +239,9 @@ public interface NetworkHandler
      * @param level       - the level
      * @param pos         - the blockpos
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos, boolean ignoreCheck)
+    default <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos, boolean ignoreCheck)
     {
         sendToClientsLoadingPos(packet, level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4), ignoreCheck);
     }
@@ -253,9 +253,9 @@ public interface NetworkHandler
      * @param level  - the level
      * @param pos    - the blockpos
      * @param range  - the range
-     * @param <T>    - The packet
+     * @param <T>    - The packet type
      */
-    default <T> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range)
+    default <T extends CustomPacketPayload> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range)
     {
         sendToClientsInRange(packet, level, pos, range, false);
     }
@@ -268,9 +268,9 @@ public interface NetworkHandler
      * @param pos         - the blockpos
      * @param range       - the range
      * @param ignoreCheck - ignore the check if the client has the packet registered.
-     * @param <T>         - The packet
+     * @param <T>         - The packet type
      */
-    default <T> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range, boolean ignoreCheck)
+    default <T extends CustomPacketPayload> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range, boolean ignoreCheck)
     {
         for (ServerPlayer player : level.players())
         {

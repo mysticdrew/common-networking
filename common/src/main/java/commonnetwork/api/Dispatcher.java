@@ -2,24 +2,31 @@ package commonnetwork.api;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+/**
+ * Static convenience facade over {@link NetworkHandler}. Every method delegates to {@link Network#getNetworkHandler()};
+ * use this when you don't want to thread the handler reference through your code.
+ */
 public class Dispatcher
 {
     /**
      * Sends the packet to the server, if the server has the packet registered.
      *
      * @param packet - the packet
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToServer(T packet)
+    public static <T extends CustomPacketPayload> void sendToServer(T packet)
     {
         Network.getNetworkHandler().sendToServer(packet);
     }
@@ -30,9 +37,9 @@ public class Dispatcher
      *
      * @param packet      - the packet
      * @param ignoreCheck - ignore the check if the server has the packet registered.
-     * @param <T>         - The type
+     * @param <T>         - The packet type
      */
-    public static <T> void sendToServer(T packet, boolean ignoreCheck)
+    public static <T extends CustomPacketPayload> void sendToServer(T packet, boolean ignoreCheck)
     {
         Network.getNetworkHandler().sendToServer(packet, ignoreCheck);
     }
@@ -42,9 +49,9 @@ public class Dispatcher
      *
      * @param packet     - the packet
      * @param connection - the connection
-     * @param <T>        - The packet
+     * @param <T>        - The packet type
      */
-    public static <T> void send(T packet, Connection connection)
+    public static <T extends CustomPacketPayload> void send(T packet, Connection connection)
     {
         Network.getNetworkHandler().send(packet, connection);
     }
@@ -54,11 +61,24 @@ public class Dispatcher
      *
      * @param packet - the packet
      * @param player - the player
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToClient(T packet, ServerPlayer player)
+    public static <T extends CustomPacketPayload> void sendToClient(T packet, ServerPlayer player)
     {
         Network.getNetworkHandler().sendToClient(packet, player);
+    }
+
+    /**
+     * Sends the packet to the client player.
+     *
+     * @param packet      - the packet
+     * @param player      - the player
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClient(packet, player, ignoreCheck);
     }
 
     /**
@@ -66,14 +86,24 @@ public class Dispatcher
      *
      * @param packet  - the packet
      * @param players - the players
-     * @param <T>     - The type
+     * @param <T>     - The packet type
      */
-    public static <T> void sendToClients(T packet, List<ServerPlayer> players)
+    public static <T extends CustomPacketPayload> void sendToClients(T packet, List<ServerPlayer> players)
     {
-        for (ServerPlayer player : players)
-        {
-            sendToClient(packet, player);
-        }
+        Network.getNetworkHandler().sendToClients(packet, players);
+    }
+
+    /**
+     * Sends the packet to the client players.
+     *
+     * @param packet      - the packet
+     * @param players     - the players
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClients(T packet, List<ServerPlayer> players, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClients(packet, players, ignoreCheck);
     }
 
     /**
@@ -81,11 +111,24 @@ public class Dispatcher
      *
      * @param packet - the packet
      * @param server - the server
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToAllClients(T packet, MinecraftServer server)
+    public static <T extends CustomPacketPayload> void sendToAllClients(T packet, MinecraftServer server)
     {
-        sendToClients(packet, server.getPlayerList().getPlayers());
+        Network.getNetworkHandler().sendToAllClients(packet, server);
+    }
+
+    /**
+     * Sends the packet to all the client players in the server.
+     *
+     * @param packet      - the packet
+     * @param server      - the server
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToAllClients(T packet, MinecraftServer server, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToAllClients(packet, server, ignoreCheck);
     }
 
     /**
@@ -93,11 +136,24 @@ public class Dispatcher
      *
      * @param packet - the packet
      * @param level  - the level
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToClientsInLevel(T packet, ServerLevel level)
+    public static <T extends CustomPacketPayload> void sendToClientsInLevel(T packet, ServerLevel level)
     {
-        sendToClients(packet, level.players());
+        Network.getNetworkHandler().sendToClientsInLevel(packet, level);
+    }
+
+    /**
+     * Sends the packet to all the client players in the level.
+     *
+     * @param packet      - the packet
+     * @param level       - the level
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClientsInLevel(T packet, ServerLevel level, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClientsInLevel(packet, level, ignoreCheck);
     }
 
     /**
@@ -105,14 +161,25 @@ public class Dispatcher
      *
      * @param packet - the packet
      * @param chunk  - the chunk
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToClientsLoadingChunk(T packet, LevelChunk chunk)
+    public static <T extends CustomPacketPayload> void sendToClientsLoadingChunk(T packet, LevelChunk chunk)
     {
-        ServerChunkCache chunkCache = (ServerChunkCache) chunk.getLevel().getChunkSource();
-        sendToClients(packet, chunkCache.chunkMap.getPlayers(chunk.getPos(), false));
+        Network.getNetworkHandler().sendToClientsLoadingChunk(packet, chunk);
     }
 
+    /**
+     * Sends the packet to all the client players loading a chunk.
+     *
+     * @param packet      - the packet
+     * @param chunk       - the chunk
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClientsLoadingChunk(T packet, LevelChunk chunk, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClientsLoadingChunk(packet, chunk, ignoreCheck);
+    }
 
     /**
      * Sends the packet to all the client players loading a position, only if the players has the packet registered.
@@ -120,11 +187,25 @@ public class Dispatcher
      * @param packet - the packet
      * @param level  - the level
      * @param pos    - the chunkpos
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos)
+    public static <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos)
     {
-        sendToClientsLoadingChunk(packet, level.getChunk(pos.x(), pos.z()));
+        Network.getNetworkHandler().sendToClientsLoadingPos(packet, level, pos);
+    }
+
+    /**
+     * Sends the packet to all the client players loading a position.
+     *
+     * @param packet      - the packet
+     * @param level       - the level
+     * @param pos         - the chunkpos
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, ChunkPos pos, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClientsLoadingPos(packet, level, pos, ignoreCheck);
     }
 
     /**
@@ -133,11 +214,25 @@ public class Dispatcher
      * @param packet - the packet
      * @param level  - the level
      * @param pos    - the blockpos
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos)
+    public static <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos)
     {
-        sendToClientsLoadingPos(packet, level, new ChunkPos(pos.getX() >> 4, pos.getZ() >> 4));
+        Network.getNetworkHandler().sendToClientsLoadingPos(packet, level, pos);
+    }
+
+    /**
+     * Sends the packet to all the client players loading a position.
+     *
+     * @param packet      - the packet
+     * @param level       - the level
+     * @param pos         - the blockpos
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClientsLoadingPos(T packet, ServerLevel level, BlockPos pos, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClientsLoadingPos(packet, level, pos, ignoreCheck);
     }
 
     /**
@@ -147,16 +242,49 @@ public class Dispatcher
      * @param level  - the level
      * @param pos    - the blockpos
      * @param range  - the range
-     * @param <T>    - The type
+     * @param <T>    - The packet type
      */
-    public static <T> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range)
+    public static <T extends CustomPacketPayload> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range)
     {
-        for (ServerPlayer player : level.players())
-        {
-            if (player.distanceToSqr(pos.getX(), pos.getY(), pos.getZ()) <= range * range)
-            {
-                sendToClient(packet, player);
-            }
-        }
+        Network.getNetworkHandler().sendToClientsInRange(packet, level, pos, range);
+    }
+
+    /**
+     * Sends the packet to all the client players in range of a position.
+     *
+     * @param packet      - the packet
+     * @param level       - the level
+     * @param pos         - the blockpos
+     * @param range       - the range
+     * @param ignoreCheck - ignore the check if the client has the packet registered.
+     * @param <T>         - The packet type
+     */
+    public static <T extends CustomPacketPayload> void sendToClientsInRange(T packet, ServerLevel level, BlockPos pos, double range, boolean ignoreCheck)
+    {
+        Network.getNetworkHandler().sendToClientsInRange(packet, level, pos, range, ignoreCheck);
+    }
+
+    /**
+     * Generates a {@link ClientboundCustomPayloadPacket} wrapping the given packet without sending it.
+     *
+     * @param packet - the packet
+     * @param <T>    - The packet type
+     * @return The packet wrapped into a {@link ClientboundCustomPayloadPacket}, or null if the packet is not registered.
+     */
+    public static <T extends CustomPacketPayload> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet)
+    {
+        return Network.getNetworkHandler().getRawClientboundPacket(packet);
+    }
+
+    /**
+     * Generates a {@link ServerboundCustomPayloadPacket} wrapping the given packet without sending it.
+     *
+     * @param packet - the packet
+     * @param <T>    - The packet type
+     * @return The packet wrapped into a {@link ServerboundCustomPayloadPacket}, or null if the packet is not registered.
+     */
+    public static <T extends CustomPacketPayload> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet)
+    {
+        return Network.getNetworkHandler().getRawServerboundPacket(packet);
     }
 }

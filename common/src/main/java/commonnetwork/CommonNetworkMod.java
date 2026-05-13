@@ -7,11 +7,8 @@ import commonnetwork.networking.data.PacketContext;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class CommonNetworkMod
 {
@@ -40,41 +37,22 @@ public class CommonNetworkMod
         return delayedHandler;
     }
 
-    @Deprecated(forRemoval = true)
-    public static <T> PacketRegistrar registerPacket(Identifier packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
+    public static <T extends CustomPacketPayload> PacketRegistrar registerPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
         if (INSTANCE != null)
         {
-            return INSTANCE.packetRegistration.registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);
+            return INSTANCE.packetRegistration.registerPacket(type, codec, handler);
         }
-        else
-        {
-            return getDelayedHandler().registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);
-        }
+        return getDelayedHandler().registerPacket(type, codec, handler);
     }
 
-    public static <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    public static <T extends CustomPacketPayload> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
         if (INSTANCE != null)
         {
-            return INSTANCE.packetRegistration.registerPacket(type, packetClass, codec, handler);
+            return INSTANCE.packetRegistration.registerConfigurationPacket(type, codec, handler);
         }
-        else
-        {
-            return getDelayedHandler().registerPacket(type, packetClass, codec, handler);
-        }
-    }
-
-    public static <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
-    {
-        if (INSTANCE != null)
-        {
-            return INSTANCE.packetRegistration.registerConfigurationPacket(type, packetClass, codec, handler);
-        }
-        else
-        {
-            return getDelayedHandler().registerConfigurationPacket(type, packetClass, codec, handler);
-        }
+        return getDelayedHandler().registerConfigurationPacket(type, codec, handler);
     }
 
     public PacketRegistrationHandler getPacketRegistration()

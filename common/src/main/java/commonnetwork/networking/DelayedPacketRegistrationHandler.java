@@ -6,23 +6,14 @@ import commonnetwork.networking.data.Side;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-public class DelayedPacketRegistrationHandler  implements PacketRegistrar
+public class DelayedPacketRegistrationHandler implements PacketRegistrar
 {
-    private static final Map<Class<?>, PacketContainer<?>> QUEUED_PACKET_MAP = new HashMap<>();
-
-
-    public DelayedPacketRegistrationHandler()
-    {
-
-    }
+    private static final Map<CustomPacketPayload.Type<?>, PacketContainer<?>> QUEUED_PACKET_MAP = new HashMap<>();
 
     @Override
     public Side getSide()
@@ -31,26 +22,18 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
     }
 
     @Override
-    public <T> PacketRegistrar registerPacket(Identifier id, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
+    @SuppressWarnings("unchecked")
+    public <T extends CustomPacketPayload> PacketRegistrar registerPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
-        PacketContainer<T> container = new PacketContainer<>(id, packetClass, encoder, decoder, handler);
-        QUEUED_PACKET_MAP.put(packetClass, container);
+        QUEUED_PACKET_MAP.put(type, new PacketContainer<>(type, (StreamCodec<? super FriendlyByteBuf, T>) codec, handler, PacketContainer.PacketType.PLAY));
         return this;
     }
 
     @Override
-    public <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    @SuppressWarnings("unchecked")
+    public <T extends CustomPacketPayload> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
-        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.PLAY);
-        QUEUED_PACKET_MAP.put(packetClass, container);
-        return this;
-    }
-
-    @Override
-    public <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
-    {
-        PacketContainer<T> container = new PacketContainer<>(type, packetClass, codec, handler, PacketContainer.PacketType.CONFIGURATION);
-        QUEUED_PACKET_MAP.put(packetClass, container);
+        QUEUED_PACKET_MAP.put(type, new PacketContainer<>(type, (StreamCodec<? super FriendlyByteBuf, T>) codec, handler, PacketContainer.PacketType.CONFIGURATION));
         return this;
     }
 
@@ -59,7 +42,8 @@ public class DelayedPacketRegistrationHandler  implements PacketRegistrar
         if (!QUEUED_PACKET_MAP.isEmpty())
         {
             packetRegistration.PACKET_MAP.putAll(QUEUED_PACKET_MAP);
-            QUEUED_PACKET_MAP.forEach((aClass, container) -> packetRegistration.registerPacket(container));
+            QUEUED_PACKET_MAP.values().forEach(packetRegistration::onRegister);
+            QUEUED_PACKET_MAP.clear();
         }
     }
 }

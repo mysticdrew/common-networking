@@ -1,11 +1,9 @@
 package commonnetwork.networking;
 
 import commonnetwork.Constants;
-import commonnetwork.networking.data.CommonPacketWrapper;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
-import commonnetwork.networking.exceptions.RegistrationException;
 import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -14,8 +12,8 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
 
 public class FabricNetworkHandler extends PacketRegistrationHandler
 {
@@ -25,135 +23,93 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         super(side);
     }
 
-    @SuppressWarnings("unchecked")
-    protected <T> void registerPacket(PacketContainer<T> container)
+    @Override
+    protected <T extends CustomPacketPayload> void onRegister(PacketContainer<T> container)
     {
         try
         {
             if (container.packetType() == PacketContainer.PacketType.PLAY)
             {
-                PayloadTypeRegistry.serverboundPlay().register(container.getType(), container.getCodec());
-                PayloadTypeRegistry.clientboundPlay().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.serverboundPlay().register(container.type(), container.codec());
+                PayloadTypeRegistry.clientboundPlay().register(container.type(), container.codec());
             }
             else
             {
-                PayloadTypeRegistry.serverboundConfiguration().register(container.getType(), container.getCodec());
-                PayloadTypeRegistry.clientboundConfiguration().register(container.getType(), container.getCodec());
+                PayloadTypeRegistry.serverboundConfiguration().register(container.type(), container.codec());
+                PayloadTypeRegistry.clientboundConfiguration().register(container.type(), container.codec());
             }
         }
-        catch (IllegalArgumentException e)
+        catch (IllegalArgumentException ignored)
         {
-            // do nothing
+            // already registered
         }
 
         if (Side.CLIENT.equals(this.side))
         {
-            Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.CLIENT);
+            Constants.LOG.debug("Registering packet {} on the: {}", container.type().id(), Side.CLIENT);
 
             if (container.packetType() == PacketContainer.PacketType.PLAY)
             {
-                // play packets
-                ClientPlayNetworking.registerGlobalReceiver(container.getType(),
-                        (ClientPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
-                                container.handler().accept(
-                                        new PacketContext<>(payload.packet(), Side.CLIENT))));
+                ClientPlayNetworking.registerGlobalReceiver(container.type(),
+                        (payload, context) -> context.client().execute(() ->
+                                container.handler().accept(new PacketContext<>(payload, Side.CLIENT))));
             }
             else
             {
-                // configuration packets
-                ClientConfigurationNetworking.registerGlobalReceiver(container.getType(),
-                        (ClientConfigurationNetworking.ConfigurationPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.client().execute(() ->
-                                container.handler().accept(
-                                        new PacketContext<>(payload.packet(), Side.CLIENT))));
+                ClientConfigurationNetworking.registerGlobalReceiver(container.type(),
+                        (payload, context) -> context.client().execute(() ->
+                                container.handler().accept(new PacketContext<>(payload, Side.CLIENT))));
             }
         }
 
-        Constants.LOG.debug("Registering packet {} : {} on the: {}", container.type().id(), container.classType(), Side.SERVER);
+        Constants.LOG.debug("Registering packet {} on the: {}", container.type().id(), Side.SERVER);
         if (container.packetType() == PacketContainer.PacketType.PLAY)
         {
-            // play packets
-            ServerPlayNetworking.registerGlobalReceiver(container.getType(),
-                    (ServerPlayNetworking.PlayPayloadHandler<CommonPacketWrapper<T>>) (payload, context) -> context.player().level().getServer().execute(() ->
-                            container.handler().accept(
-                                    new PacketContext<>(context.player(), payload.packet(), Side.SERVER))));
+            ServerPlayNetworking.registerGlobalReceiver(container.type(),
+                    (payload, context) -> context.player().level().getServer().execute(() ->
+                            container.handler().accept(new PacketContext<>(context.player(), payload, Side.SERVER))));
         }
         else
         {
-            // configuration packets
-            ServerConfigurationNetworking.registerGlobalReceiver(container.getType(),
-                    (ServerConfigurationNetworking.ConfigurationPacketHandler<CommonPacketWrapper<T>>) (payload, context) -> context.server().execute(() ->
-                            container.handler().accept(
-                                    new PacketContext<>(null, payload.packet(), Side.SERVER))));
+            ServerConfigurationNetworking.registerGlobalReceiver(container.type(),
+                    (payload, context) -> context.server().execute(() ->
+                            container.handler().accept(new PacketContext<>(null, payload, Side.SERVER))));
         }
-
     }
 
     @Override
-    public <T> void send(T packet, Connection connection)
+    public <T extends CustomPacketPayload> void send(T packet, Connection connection)
     {
-        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
-        if (container != null)
+        if (PACKET_MAP.containsKey(packet.type()))
         {
             if (this.side == Side.SERVER)
             {
-                connection.send(new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
+                connection.send(new ClientboundCustomPayloadPacket(packet));
             }
             else
             {
-                connection.send(new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet)));
+                connection.send(new ServerboundCustomPayloadPacket(packet));
             }
         }
     }
 
-	 @Override
-	 public <T> @Nullable ClientboundCustomPayloadPacket getRawClientboundPacket(T packet){
-		 PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
-		 if (container != null) {
-			 return new ClientboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet));
-		 }
-		 return null;
-	 }
-
-	 @Override
-	 public <T> @Nullable ServerboundCustomPayloadPacket getRawServerboundPacket(T packet){
-		 PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
-		 if (container != null) {
-			 return new ServerboundCustomPayloadPacket(new CommonPacketWrapper<>(container, packet));
-		 }
-		 return null;
-	 }
-
-    @SuppressWarnings("unchecked")
-    public <T> void sendToServer(T packet, boolean ignoreCheck)
+    @Override
+    public <T extends CustomPacketPayload> void sendToServer(T packet, boolean ignoreCheck)
     {
-        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
-        if (container != null)
+        PacketContainer<T> container = requireContainer(packet);
+        if (ignoreCheck || ClientPlayNetworking.canSend(container.type().id()))
         {
-            if (ignoreCheck || ClientPlayNetworking.canSend(container.type().id()))
-            {
-                ClientPlayNetworking.send(new CommonPacketWrapper<>(container, packet));
-            }
-        }
-        else
-        {
-            throw new RegistrationException(packet.getClass() + "{} packet not registered on the client, packets need to be registered on both sides!");
+            ClientPlayNetworking.send(packet);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
+    @Override
+    public <T extends CustomPacketPayload> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
     {
-        PacketContainer<T> container = (PacketContainer<T>) PACKET_MAP.get(packet.getClass());
-        if (container != null)
+        PacketContainer<T> container = requireContainer(packet);
+        if (ignoreCheck || ServerPlayNetworking.canSend(player, container.type().id()))
         {
-            if (ignoreCheck || ServerPlayNetworking.canSend(player, container.type().id()))
-            {
-                ServerPlayNetworking.send(player, new CommonPacketWrapper<>(container, packet));
-            }
-        }
-        else
-        {
-            throw new RegistrationException(packet.getClass() + "{} packet not registered on the server, packets need to be registered on both sides!");
+            ServerPlayNetworking.send(player, packet);
         }
     }
 }

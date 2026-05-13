@@ -6,60 +6,37 @@ import commonnetwork.networking.data.PacketContext;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class Network
 {
     /**
      * Packet Registration
      *
-     * @param packetIdentifier - The unique {@link Identifier} packet id.
-     * @param packetClass      - The class of the packet.
-     * @param encoder          - The encoder method.
-     * @param decoder          - The decoder method.
-     * @param handler          - The handler method.
-     * @param <T>              - The type
+     * @param type    - The packet type.
+     * @param codec   - The StreamCodec.
+     * @param handler - The handler method.
+     * @param <T>     - The packet type
      * @return The registrar for chaining registrations.
-     * @deprecated this method will eventually be removed, please migrate to the method supplying your own encoding/decoding codec. Likely in 1.21.2 or 1.22.
      */
-    @Deprecated(forRemoval = true)
-    public static <T> PacketRegistrar registerPacket(Identifier packetIdentifier, Class<T> packetClass, BiConsumer<T, FriendlyByteBuf> encoder, Function<FriendlyByteBuf, T> decoder, Consumer<PacketContext<T>> handler)
+    public static <T extends CustomPacketPayload> PacketRegistrar registerPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
-        return CommonNetworkMod.registerPacket(packetIdentifier, packetClass, encoder, decoder, handler);
+        return CommonNetworkMod.registerPacket(type, codec, handler);
     }
 
     /**
-     * Packet Registration
+     * Packet Registration for the CONFIGURATION phase.
      *
-     * @param type        - The packet type.
-     * @param packetClass - The class of the packet.
-     * @param codec       - The StreamCodec.
-     * @param handler     - The handler method.
-     * @param <T>         - The class type
+     * @param type    - The packet type.
+     * @param codec   - The StreamCodec.
+     * @param handler - The handler method.
+     * @param <T>     - The packet type
      * @return The registrar for chaining registrations.
      */
-    public static <T> PacketRegistrar registerPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
+    public static <T extends CustomPacketPayload> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
-        return CommonNetworkMod.registerPacket(type, packetClass, codec, handler);
-    }
-
-    /**
-     * Packet Registration
-     *
-     * @param type        - The packet type.
-     * @param packetClass - The class of the packet.
-     * @param codec       - The StreamCodec.
-     * @param handler     - The handler method.
-     * @param <T>         - The class type
-     * @return The registrar for chaining registrations.
-     */
-    public static <T> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<? extends CustomPacketPayload> type, Class<T> packetClass, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
-    {
-        return CommonNetworkMod.registerConfigurationPacket(type, packetClass, codec, handler);
+        return CommonNetworkMod.registerConfigurationPacket(type, codec, handler);
     }
 
     /**
