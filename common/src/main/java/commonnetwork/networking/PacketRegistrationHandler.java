@@ -11,6 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import java.util.function.Consumer;
 public abstract class PacketRegistrationHandler implements NetworkHandler, PacketRegistrar
 {
     final Map<CustomPacketPayload.Type<?>, PacketContainer<?>> PACKET_MAP = new HashMap<>();
+    final Map<Identifier, PacketContainer<?>> packetById = new HashMap<>();
 
     protected final Side side;
 
@@ -33,7 +35,12 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
     public <T extends CustomPacketPayload> PacketRegistrar registerPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(type, (StreamCodec<? super FriendlyByteBuf, T>) codec, handler, PacketContainer.PacketType.PLAY);
+        if (!supports(container.packetType()))
+        {
+            throw new RegistrationException("Backend does not support packet type: " + container.packetType());
+        }
         PACKET_MAP.put(type, container);
+        packetById.put(type.id(), container);
         onRegister(container);
         return this;
     }
@@ -43,9 +50,24 @@ public abstract class PacketRegistrationHandler implements NetworkHandler, Packe
     public <T extends CustomPacketPayload> PacketRegistrar registerConfigurationPacket(CustomPacketPayload.Type<T> type, StreamCodec<? extends FriendlyByteBuf, T> codec, Consumer<PacketContext<T>> handler)
     {
         PacketContainer<T> container = new PacketContainer<>(type, (StreamCodec<? super FriendlyByteBuf, T>) codec, handler, PacketContainer.PacketType.CONFIGURATION);
+        if (!supports(container.packetType()))
+        {
+            throw new RegistrationException("Backend does not support packet type: " + container.packetType());
+        }
         PACKET_MAP.put(type, container);
+        packetById.put(type.id(), container);
         onRegister(container);
         return this;
+    }
+
+    protected boolean supports(PacketContainer.PacketType type)
+    {
+        return true;
+    }
+
+    protected @Nullable PacketContainer<?> getPacketContainer(Identifier id)
+    {
+        return packetById.get(id);
     }
 
     @Override

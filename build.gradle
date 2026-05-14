@@ -3,6 +3,8 @@ plugins {
     id 'net.fabricmc.fabric-loom' version '1.16-SNAPSHOT' apply false
     // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
     id 'net.neoforged.moddev' version '2.0.140' apply false
+    // see https://github.com/PaperMC/paperweight for new versions
+    id 'io.papermc.paperweight.userdev' version '2.0.0-beta.21' apply false
 }
 
 configurations.configureEach {

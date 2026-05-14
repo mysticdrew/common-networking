@@ -1,0 +1,8 @@
+name: examplemod
+version: ${version}
+main: example.paper.ExampleModPaper
+api-version: '26.1'
+author: ${mod_author}
+description: Common Networking example plugin (testmod).
+load: STARTUP
+depend: [commonnetworking]

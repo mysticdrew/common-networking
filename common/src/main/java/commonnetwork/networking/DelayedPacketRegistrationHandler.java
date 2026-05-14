@@ -3,6 +3,7 @@ package commonnetwork.networking;
 import commonnetwork.networking.data.PacketContainer;
 import commonnetwork.networking.data.PacketContext;
 import commonnetwork.networking.data.Side;
+import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -41,8 +42,16 @@ public class DelayedPacketRegistrationHandler implements PacketRegistrar
     {
         if (!QUEUED_PACKET_MAP.isEmpty())
         {
-            packetRegistration.PACKET_MAP.putAll(QUEUED_PACKET_MAP);
-            QUEUED_PACKET_MAP.values().forEach(packetRegistration::onRegister);
+            QUEUED_PACKET_MAP.forEach((type, container) ->
+            {
+                if (!packetRegistration.supports(container.packetType()))
+                {
+                    throw new RegistrationException("Backend does not support packet type: " + container.packetType());
+                }
+                packetRegistration.PACKET_MAP.put(type, container);
+                packetRegistration.packetById.put(type.id(), container);
+                packetRegistration.onRegister(container);
+            });
             QUEUED_PACKET_MAP.clear();
         }
     }

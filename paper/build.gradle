@@ -1,0 +1,75 @@
+plugins {
+    id 'io.papermc.paperweight.userdev'
+    id 'xyz.jpenilla.run-paper' version '2.3.1'
+    id 'multiloader-loader'
+    id 'maven-publish'
+    id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'com.modrinth.minotaur' version '[2,3)'
+}
+
+def baseName = "${project.base_name}" + "-paper"
+base.archivesName = baseName
+
+dependencies {
+    paperweight.paperDevBundle(paper_version)
+}
+
+sourceSets {
+    testmod {
+        java {
+            exclude 'example/network/ExamplePacketOne.java'
+            exclude 'example/network/ExamplePacketTwo.java'
+            exclude 'example/network/ExamplePacketRegistration.java'
+            exclude 'example/ExampleModCommon.java'
+            exclude 'example/client/**'
+        }
+    }
+}
+
+tasks.named('runDevBundleServer', xyz.jpenilla.runpaper.task.RunServer) {
+    pluginJars.from(tasks.named('testmodJar'))
+}
+
+// Automated upload to CurseForge for the win!
+if (!project.hasProperty("curseForgeApiKey")) {
+    ext.curseForgeApiKey = project.findProperty("curseforge_api_key") ?: "notset"
+}
+if (!project.hasProperty("modrinthApiKey")) {
+    ext.modrinthApiKey = project.findProperty("modrinth_api_key") ?: "notset"
+}
+
+task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+
+    apiToken = "${curseForgeApiKey}"
+    def mainFile = upload(curseforge_project_id, jar)
+    mainFile.displayName = "${baseName}-${version}"
+    mainFile.releaseType = release_type
+    mainFile.addJavaVersion("Java 25")
+    mainFile.addGameVersion("${project.minecraft_version}")
+    mainFile.changelogType = "html"
+    mainFile.changelog = file("$project.buildDir/doc/changelog.html")
+}
+
+tasks.modrinth.dependsOn(tasks.build)
+
+modrinth {
+    token = "${modrinthApiKey}"
+    projectId = modrinth_project_id
+    versionNumber = "${version}"
+    versionName = "${baseName}-${version}"
+    versionType = release_type
+    uploadFile = jar
+    gameVersions = ["${project.minecraft_version}"]
+    loaders = ["bukkit", "paper"]
+    changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
+}
+
+// Ensure build is done prior to cursegradle tasks
+project.afterEvaluate {
+    project.tasks.findAll { task ->
+        (task.name.startsWith('curseforge') || task.name.startsWith('modrinth'))
+                && (task.name != 'curseforge' || task.name != 'modrinth')
+    }.each { projectTask ->
+        projectTask.dependsOn build
+    }
+}

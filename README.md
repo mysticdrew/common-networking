@@ -1,10 +1,11 @@
 ## Common Networking
-This library mod unifies packet registration and dispatch across Fabric, Forge, and NeoForge so
-developers using Jared's [MultiLoader Template][3] only deal with networking in the common module.
-It is not limited to MultiLoader - it works in any multi-loader setup.
+This library mod unifies packet registration and dispatch across Fabric, Forge, NeoForge, and
+Paper so developers using Jared's [MultiLoader Template][3] only deal with networking in the
+common module. It is not limited to MultiLoader - it works in any multi-loader setup.
 
-It also keeps your mod loader-agnostic on the wire: a Forge client can talk to a Fabric server
-(and vice versa). You will still need your own handshake packet if you care about gating.
+It also keeps your mod loader-agnostic on the wire: a Forge client can talk to a Fabric server,
+a Fabric client can talk to a Paper server, and so on. You will still need your own handshake
+packet if you care about gating.
 
 Note:
 Being loader-agnostic may no longer be valid, modloaders have changed their registration systems since this project was first created. 
@@ -38,11 +39,32 @@ dependencies {
     implementation "mysticdrew:common-networking-neoforge:${version}"
 }
 
+// Paper (Bukkit plugin)
+dependencies {
+    compileOnly "mysticdrew:common-networking-paper:${version}"
+}
+
 // Common
 dependencies {
     implementation "mysticdrew:common-networking-common:${version}"
 }
 ```
+
+### Paper module
+The Paper backend lets a Bukkit plugin participate in the same packet protocol that the modded
+loaders use, so a Fabric or NeoForge client can talk to a Paper server using the packets you
+register through `Network.registerPacket(...)`.
+
+Caveats specific to Paper:
+- Server-side only. `sendToServer`, raw `send(packet, Connection)`, and `getRaw*Packet(...)`
+  throw `UnsupportedOperationException`. Use `sendToClient(packet, serverPlayer)` or one of the
+  multi-player variants on `Dispatcher`.
+- PLAY-phase packets only. Configuration-phase packets are not supported because Bukkit's plugin
+  messaging API does not expose the configuration phase.
+- Your plugin must extend `JavaPlugin` and construct a `PaperNetworkHandler(this, Side.SERVER)`
+  in `onEnable()`, then hand it to `new CommonNetworkMod(handler)`. Call `handler.shutdown()` in
+  `onDisable()` to unregister channels. See
+  [`CommonNetworkPaper`](paper/src/main/java/commonnetwork/CommonNetworkPaper.java).
 
 ### How to use
 **1. Make your packet implement `CustomPacketPayload`** with a `TYPE` field and a `STREAM_CODEC`:
@@ -96,11 +118,20 @@ A full working example lives under the `testmod` source set:
 - Fabric entry: [`fabric/src/testmod/java/example/fabric/ExampleModFabric.java`](fabric/src/testmod/java/example/fabric/ExampleModFabric.java)
 - Forge entry: [`forge/src/testmod/java/example/forge/ExampleModForge.java`](forge/src/testmod/java/example/forge/ExampleModForge.java)
 - NeoForge entry: [`neoforge/src/testmod/java/example/neoforge/ExampleModNeoForge.java`](neoforge/src/testmod/java/example/neoforge/ExampleModNeoForge.java)
+- Paper entry: [`paper/src/testmod/java/example/paper/ExampleModPaper.java`](paper/src/testmod/java/example/paper/ExampleModPaper.java)
 
 The example mod is compiled by each loader's `compileTestmodJava` task and packaged into a
-`*-testmod.jar` by `:fabric:testmodJar`, `:forge:testmodJar`, and `:neoforge:testmodJar`. It is not
-published to maven - it exists only so the library is verified against a real consumer and so the
-IDE run configurations can launch a client/server that exercises the API end-to-end.
+`*-testmod.jar` by `:fabric:testmodJar`, `:forge:testmodJar`, `:neoforge:testmodJar`, and
+`:paper:testmodJar`. It is not published to maven - it exists only so the library is verified
+against a real consumer and so the IDE run configurations can launch a client/server that exercises
+the API end-to-end. The Paper testmod ships server-only equivalents of the shared example packets
+(see [`paper/src/testmod/java/example/paper/network/`](paper/src/testmod/java/example/paper/network/))
+because the shared classes reference client-only Minecraft classes that are not available on a
+Paper devbundle.
+
+To launch a Paper test server with both the library and the example plugin, run
+`:paper:runDevBundleServer`. The task uses Paper's bundled dev paperclip so it works even when the
+target Minecraft version is not yet a published Paper release.
 
 ## Contributing
 Pull Requests are welcome and encouraged.
@@ -110,7 +141,7 @@ Pull Requests are welcome and encouraged.
 * JDK 25
 
 ### IntelliJ setup
-Common Networking uses the [MultiLoader Template][3] pattern for sharing Fabric/Forge/NeoForge
+Common Networking uses the [MultiLoader Template][3] pattern for sharing Fabric/Forge/NeoForge/Paper
 sources via a single common module.
 
 1. If your default JVM is not JDK 25, set it via `File > Settings > Build, Execution, Deployment >

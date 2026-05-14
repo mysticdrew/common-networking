@@ -1,0 +1,7 @@
+name: ${mod_id}
+version: ${version}
+main: commonnetwork.CommonNetworkPaper
+api-version: '26.1'
+author: ${mod_author}
+description: ${mod_id} networking library for Paper.
+load: STARTUP
