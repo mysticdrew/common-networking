@@ -2,6 +2,7 @@ plugins {
     id 'io.papermc.paperweight.userdev'
     id 'xyz.jpenilla.run-paper' version '2.3.1'
     id 'multiloader-loader'
+    id 'net.neoforged.moddev'
     id 'maven-publish'
     id 'net.darkhax.curseforgegradle' version '1.+'
     id 'com.modrinth.minotaur' version '[2,3)'
@@ -10,6 +11,15 @@ plugins {
 def baseName = "${project.base_name}" + "-paper"
 base.archivesName = baseName
 
+neoForge {
+    // NeoForm puts vanilla Minecraft on the compile classpath (including client-only
+    // types like net.minecraft.client.Minecraft) so the shared example packets in
+    // :common's testmod compile here. These client classes are never loaded at runtime
+    // on a Paper server - the shared packets only run their server-side branch there.
+    neoFormVersion = neo_form_version
+    addModdingDependenciesTo(sourceSets["testmod"])
+}
+
 dependencies {
     paperweight.paperDevBundle(paper_version)
 }
@@ -17,10 +27,8 @@ dependencies {
 sourceSets {
     testmod {
         java {
-            exclude 'example/network/ExamplePacketOne.java'
-            exclude 'example/network/ExamplePacketTwo.java'
-            exclude 'example/network/ExamplePacketRegistration.java'
-            exclude 'example/ExampleModCommon.java'
+            // The client entry point is not used on a Paper server; the shared packets
+            // and ExampleModCommon are compiled directly (see the neoForge block above).
             exclude 'example/client/**'
         }
     }
