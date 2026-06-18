@@ -24,6 +24,17 @@ dependencies {
     paperweight.paperDevBundle(paper_version)
 }
 
+// ModDevGradle adds the vanilla Minecraft jar to the main source set's compile
+// classpath (via modDevCompileDependencies), where it shadows paperweight's
+// CraftBukkit-patched server: vanilla DiscardedPayload is single-arg and vanilla
+// ServerPlayer lacks getBukkitEntity, while Paper patches both. Main must compile
+// only against the Paper dev bundle; the vanilla classes are needed solely by the
+// shared example packets in the testmod source set, which keep them via
+// addModdingDependenciesTo(testmod) in the neoForge block above.
+configurations.named('compileClasspath') {
+    setExtendsFrom(extendsFrom.findAll { it.name != 'modDevCompileDependencies' })
+}
+
 sourceSets {
     testmod {
         java {

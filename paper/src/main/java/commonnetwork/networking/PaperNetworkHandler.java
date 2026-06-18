@@ -112,7 +112,7 @@ public class PaperNetworkHandler extends PacketRegistrationHandler implements Pl
             container = requireContainer(packet);
             Identifier id = container.type().id();
             RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(), player.registryAccess());
-            StreamCodec<? super RegistryFriendlyByteBuf, T> codec = (StreamCodec<? super RegistryFriendlyByteBuf, T>) container.codec();
+            StreamCodec<? super RegistryFriendlyByteBuf, T> codec = container.codec();
             codec.encode(buf, packet);
             player.connection.send(new ClientboundCustomPayloadPacket(new DiscardedPayload(id, ByteBufUtil.getBytes(buf))));
         }
