@@ -99,9 +99,14 @@ if (!project.hasProperty('modrinthApiKey')) {
     ext.modrinthApiKey = project.findProperty('modrinth_api_key') ?: 'notset'
 }
 
+// jar is reobfuscated to SRG in place (finalizedBy reobfJar), so it is the clean-named distributable.
+// Upload/publish must reference the jar AbstractArchiveTask (not the renamer's renameJar task, which
+// minotaur/curse cannot convert to a File); it runs after reobfJar via the mustRunAfter above.
+def publishJar = tasks.named('jar', Jar)
+
 tasks.register('publishCurseForge', TaskPublishCurseForge) {
     apiToken = "${curseForgeApiKey}"
-    def mainFile = upload(curseforge_project_id, tasks.named('renameJar'))
+    def mainFile = upload(curseforge_project_id, publishJar)
     mainFile.displayName = "${project.base_name}-${project.name}-${version}"
     mainFile.releaseType = release_type
     mainFile.addModLoader('Forge')
@@ -119,7 +124,7 @@ modrinth {
     versionNumber = "${version}"
     versionName = "${project.base_name}-${project.name}-${version}"
     versionType = release_type
-    uploadFile = tasks.named('renameJar')
+    uploadFile = publishJar
     gameVersions = ["${project.minecraft_version}"]
     loaders = ['forge']
     changelog = file("${layout.buildDirectory.get()}/doc/changelog.html").exists() ? file("${layout.buildDirectory.get()}/doc/changelog.html").text : null
