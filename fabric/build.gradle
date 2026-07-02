@@ -52,18 +52,6 @@ tasks.register('processDocs', Copy) {
     into "${layout.buildDirectory.get()}/doc"
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId "${project.base_name}-${project.name}"
-            version project.version
-            // loom wires the remapped (intermediary) jar into components.java
-            from components.java
-        }
-    }
-}
-
 if (!project.hasProperty('curseForgeApiKey')) {
     ext.curseForgeApiKey = project.findProperty('curseforge_api_key') ?: 'notset'
 }

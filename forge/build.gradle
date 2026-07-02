@@ -79,17 +79,6 @@ tasks.register('processDocs', Copy) {
     into "${layout.buildDirectory.get()}/doc"
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId project.group
-            artifactId "${project.base_name}-${project.name}"
-            version project.version
-            // The single clean-named jar (reobfuscated in place to SRG) plus sources/javadoc/POM.
-            from components.java
-        }
-    }
-}
 
 // Automated upload to CurseForge for the win!
 if (!project.hasProperty('curseForgeApiKey')) {
