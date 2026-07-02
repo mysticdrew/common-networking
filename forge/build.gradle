@@ -1,188 +1,114 @@
-buildscript {
-    repositories {
-        mavenCentral()
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
-        maven {
-            name = "forge"
-            url = "https://maven.minecraftforge.net"
-        }
-        maven {
-            url = 'https://maven.parchmentmc.org'
-        }
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        maven {
-            url = 'https://repo.spongepowered.org/maven'
-        }
-    }
-
-    dependencies {
-        classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
-    }
-}
 plugins {
-    id 'java'
-    id 'eclipse'
-    id 'maven-publish'
-    id 'net.minecraftforge.gradle' version '6.0.+'
-    id 'net.darkhax.curseforgegradle' version '1.+'
+    id 'multiloader-loader'
+    id 'net.minecraftforge.gradle' version '[7.0.2,8.0)'
+    // Reobfuscates the jar to SRG names - required for 1.20.1 Forge (SRG runtime).
+    id 'net.minecraftforge.renamer' version '1.1.0'
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
+    id 'com.modrinth.minotaur' version '2.+'
 }
-apply plugin: "com.modrinth.minotaur"
 
-version = "${project.version}-${project.minecraft_version}"
-group = project.group_id
-archivesBaseName = "${project.base_name}" + "-forge"
+repositories {
+    maven minecraft.mavenizer
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
 
-// Disables Gradle's custom module metadata from being published to maven. The
-// metadata includes mapped dependencies which are not reasonably consumable by
-// other mod developers.
-tasks.withType(GenerateModuleMetadata) {
-    enabled = false
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
 }
 
 minecraft {
-    mappings channel: 'official', version: minecraft_version
+    mappings channel: 'official', version: "${minecraft_version}"
+    // NOTE: accessTransformers intentionally omitted - common-networking ships none, and the
+    // FG7 mavenizer AT/JDK bug on 1.20.1 makes enabling them unreliable. Restore here if added.
+
     runs {
-        client {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Client'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modClientRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
+        configureEach {
+            systemProperty 'forge.logging.console.level', 'debug'
         }
-
-        server {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            taskName 'Server'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modServerRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
+        register('client') {
+            workingDir.convention layout.projectDirectory.dir('run/client')
         }
-
-        data {
-            workingDirectory project.file('run')
-            ideaModule "${rootProject.name}.${project.name}.main"
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-            taskName 'Data'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-            mods {
-                modDataRun {
-                    source sourceSets.main
-                    source project(":common").sourceSets.main
-                }
-            }
+        register('server') {
+            workingDir.convention layout.projectDirectory.dir('run/server')
+            args 'nogui'
+        }
+        register('data') {
+            workingDir.convention layout.projectDirectory.dir('run/data')
+            args '--mod', mod_id, '--all',
+                    '--output', file('src/generated/resources/'),
+                    '--existing', file('src/main/resources/')
         }
     }
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
 
-dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    compileOnly project(":common")
+// Reobfuscate the jar to SRG names for 1.20.1 Forge's SRG runtime, IN PLACE: the renamer overwrites
+// the jar task's own output, so the single clean-named jar becomes SRG (JM ships clean reobf'd jars,
+// never an -srg classifier or a separate variant). `jar` is finalized by the reobf step.
+renamer.mappings.from minecraft.dependency.toSrgFile
+
+def reobfJar = renamer.classes(tasks.named('jar', Jar)) {
+    map.from minecraft.dependency.toSrgFile
+    output = tasks.named('jar', Jar).flatMap { it.archiveFile }
 }
 
-tasks.withType(JavaCompile) {
-    source(project(":common").sourceSets.main.allSource)
-}
-
-processResources {
-    from project(":common").sourceSets.main.resources
-}
-
-jar {
+tasks.named('jar', Jar) {
+    finalizedBy reobfJar
     dependsOn 'processDocs'
-    manifest {
-        attributes([
-                "Specification-Title"     : project.name,
-                "Specification-Vendor"    : project.group_id,
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : project.jar.archiveVersion,
-                "Implementation-Vendor"   : project.group_id,
-                "Implementation-Timestamp": getDate(),
-        ])
-    }
 }
 
-task processDocs(type: Copy) {
-    // update docs
+// The reobf overwrites the jar in place, so tasks that read the jar artifact must run after it.
+tasks.matching { it.name.startsWith('publish') || it.name.startsWith('generate') }.configureEach {
+    mustRunAfter reobfJar
+}
+
+tasks.register('processDocs', Copy) {
     from(file("$rootDir/doc/")) {
         include '*.html'
         expand 'version': project.version,
-                'date': getDate(),
+                'date': new Date().format(project.dateFormat),
                 'mcversion': project.minecraft_version,
                 'loaderversion': project.forge_version,
-                'loadername': "Forge"
+                'loadername': 'Forge'
     }
-    into "$project.buildDir/doc"
+    into "${layout.buildDirectory.get()}/doc"
 }
-
-jar.finalizedBy('reobfJar')
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId project.group
-            artifactId project.archivesBaseName
+            artifactId "${project.base_name}-${project.name}"
             version project.version
-            artifact jar
-
-            artifact project.sourcesJar {
-                archiveClassifier.set("sources")
-            }
-
-            artifact project.javadocJar {
-                archiveClassifier.set("javadoc")
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = "CommonNetworking"
-            url = uri("https://jm.gserv.me/repository/maven-releases/")
-
-            credentials {
-                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
-                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
-            }
+            // The single clean-named jar (reobfuscated in place to SRG) plus sources/javadoc/POM.
+            from components.java
         }
     }
 }
 
 // Automated upload to CurseForge for the win!
-if (!project.hasProperty("curseForgeApiKey")) {
-    ext.curseForgeApiKey = project.findProperty("curseforge_api_key") ?: "notset"
+if (!project.hasProperty('curseForgeApiKey')) {
+    ext.curseForgeApiKey = project.findProperty('curseforge_api_key') ?: 'notset'
 }
-if (!project.hasProperty("modrinthApiKey")) {
-    ext.modrinthApiKey = project.findProperty("modrinth_api_key") ?: "notset"
+if (!project.hasProperty('modrinthApiKey')) {
+    ext.modrinthApiKey = project.findProperty('modrinth_api_key') ?: 'notset'
 }
 
-task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
-
+tasks.register('publishCurseForge', TaskPublishCurseForge) {
     apiToken = "${curseForgeApiKey}"
-    def mainFile = upload(curseforge_project_id, jar)
-    mainFile.displayName = "${archivesBaseName}-${version}"
+    def mainFile = upload(curseforge_project_id, tasks.named('renameJar'))
+    mainFile.displayName = "${project.base_name}-${project.name}-${version}"
     mainFile.releaseType = release_type
-    mainFile.addModLoader("Forge")
-    mainFile.addJavaVersion("Java 17")
+    mainFile.addModLoader('Forge')
+    mainFile.addJavaVersion("Java ${java_version}")
     mainFile.addGameVersion("${project.minecraft_version}")
-    mainFile.changelogType = "html"
-    mainFile.changelog = file("$project.buildDir/doc/changelog.html")
+    mainFile.changelogType = 'html'
+    mainFile.changelog = file("${layout.buildDirectory.get()}/doc/changelog.html")
 }
 
 tasks.modrinth.dependsOn(tasks.build)
@@ -191,20 +117,10 @@ modrinth {
     token = "${modrinthApiKey}"
     projectId = modrinth_project_id
     versionNumber = "${version}"
-    versionName = "${archivesBaseName}-${version}"
+    versionName = "${project.base_name}-${project.name}-${version}"
     versionType = release_type
-    uploadFile = jar
+    uploadFile = tasks.named('renameJar')
     gameVersions = ["${project.minecraft_version}"]
-    loaders = ["forge"]
-    changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
-}
-
-// Ensure build is done prior to cursegradle tasks
-project.afterEvaluate {
-    project.tasks.findAll { task ->
-        (task.name.startsWith('curseforge') || task.name.startsWith('modrinth'))
-                && (task.name != 'curseforge' || task.name != 'modrinth')
-    }.each { projectTask ->
-        projectTask.dependsOn build
-    }
+    loaders = ['forge']
+    changelog = file("${layout.buildDirectory.get()}/doc/changelog.html").exists() ? file("${layout.buildDirectory.get()}/doc/changelog.html").text : null
 }

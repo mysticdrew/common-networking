@@ -77,11 +77,16 @@ public class ForgeNetworkHandler extends PacketRegistrationHandler
 
     public <T> void sendToClient(T packet, ServerPlayer player)
     {
+        this.sendToClient(packet, player, false);
+    }
+
+    public <T> void sendToClient(T packet, ServerPlayer player, boolean ignoreCheck)
+    {
         SimpleChannel channel = CHANNELS.get(packet.getClass());
         if (channel != null)
         {
             Connection connection = player.connection.connection;
-            if (channel.isRemotePresent(connection))
+            if (ignoreCheck || channel.isRemotePresent(connection))
             {
                 channel.sendTo(packet, player.connection.connection, PLAY_TO_CLIENT);
             }

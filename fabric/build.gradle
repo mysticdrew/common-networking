@@ -1,151 +1,87 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-
-    dependencies {
-        classpath group: 'com.modrinth.minotaur', name: 'Minotaur', version: '2.+'
-    }
-}
+import net.darkhax.curseforgegradle.TaskPublishCurseForge
 
 plugins {
-    id 'fabric-loom' version '1.2-SNAPSHOT'
-    id 'maven-publish'
-    id 'idea'
-    id 'net.darkhax.curseforgegradle' version '1.+'
-}
-
-apply plugin: "com.modrinth.minotaur"
-
-
-version = "${project.version}-${project.minecraft_version}"
-group = project.group_id
-archivesBaseName = "${project.base_name}" + "-fabric"
-
-// Disables Gradle's custom module metadata from being published to maven. The
-// metadata includes mapped dependencies which are not reasonably consumable by
-// other mod developers.
-tasks.withType(GenerateModuleMetadata) {
-
-    enabled = false
-}
-
-dependencies {
-    minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
-
-    compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-
-    compileOnly project(":common")
+    id 'fabric-loom'
+    id 'multiloader-loader'
+    id 'net.darkhax.curseforgegradle' version '1.1.28'
+    id 'com.modrinth.minotaur' version '2.+'
 }
 
 loom {
     runs {
         client {
             client()
-            setConfigName("Fabric Client")
+            setConfigName('Fabric Client')
             ideConfigGenerated(true)
-            runDir("run")
+            runDir('run')
         }
         server {
             server()
-            setConfigName("Fabric Server")
+            setConfigName('Fabric Server')
             ideConfigGenerated(true)
-            runDir("run")
+            runDir('run')
         }
     }
 }
 
-jar {
-    dependsOn 'processDocs'
-    manifest {
-        attributes([
-                "Specification-Title"     : project.name,
-                "Specification-Vendor"    : project.group_id,
-                "Specification-Version"   : "1", // We are version 1 of ourselves
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${archiveVersion}",
-                "Implementation-Vendor"   : project.group_id,
-                "Implementation-Timestamp": getDate()
-        ])
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.mappings_mc_version}:${project.mappings_date}@zip")
     }
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+
+    compileOnly group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
 }
 
-task processDocs(type: Copy) {
-    // update docs
+tasks.named('jar', Jar) {
+    dependsOn 'processDocs'
+}
+
+tasks.register('processDocs', Copy) {
     from(file("$rootDir/doc/")) {
         include '*.html'
         expand 'version': project.version,
-                'date': getDate(),
+                'date': new Date().format(project.dateFormat),
                 'mcversion': project.minecraft_version,
                 'loaderversion': project.fabric_version,
-                'loadername': "Fabric"
+                'loadername': 'Fabric'
     }
-    into "$project.buildDir/doc"
-}
-
-processResources {
-    from project(":common").sourceSets.main.resources
-    inputs.property "version", project.version
-
-    filesMatching("fabric.mod.json") {
-        expand "version": project.version
-    }
-}
-
-tasks.withType(JavaCompile) {
-    source(project(":common").sourceSets.main.allSource)
+    into "${layout.buildDirectory.get()}/doc"
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             groupId project.group
-            artifactId project.archivesBaseName
+            artifactId "${project.base_name}-${project.name}"
             version project.version
-
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        maven {
-            name = "CommonNetworking"
-            url = uri("https://jm.gserv.me/repository/maven-releases/")
-
-            credentials {
-                username = project.findProperty("deploy.user") ?: System.getenv("DEPLOY_USER")
-                password = project.findProperty("deploy.password") ?: System.getenv("DEPLOY_PASSWORD")
-            }
+            // loom wires the remapped (intermediary) jar into components.java
+            from components.java
         }
     }
 }
 
-if (!project.hasProperty("curseForgeApiKey")) {
-    ext.curseForgeApiKey = project.findProperty("curseforge_api_key") ?: "notset"
+if (!project.hasProperty('curseForgeApiKey')) {
+    ext.curseForgeApiKey = project.findProperty('curseforge_api_key') ?: 'notset'
 }
-if (!project.hasProperty("modrinthApiKey")) {
-    ext.modrinthApiKey = project.findProperty("modrinth_api_key") ?: "notset"
+if (!project.hasProperty('modrinthApiKey')) {
+    ext.modrinthApiKey = project.findProperty('modrinth_api_key') ?: 'notset'
 }
 
-task publishCurseForge(type: net.darkhax.curseforgegradle.TaskPublishCurseForge) {
-
+tasks.register('publishCurseForge', TaskPublishCurseForge) {
     apiToken = "${curseForgeApiKey}"
-    def mainFile = upload(curseforge_project_id, remapJar)
-    mainFile.displayName = "${archivesBaseName}-${version}"
+    def mainFile = upload(curseforge_project_id, tasks.named('remapJar'))
+    mainFile.displayName = "${project.base_name}-${project.name}-${version}"
     mainFile.releaseType = release_type
-    mainFile.addModLoader("Fabric", "Quilt")
-    mainFile.addJavaVersion("Java 17")
+    mainFile.addModLoader('Fabric', 'Quilt')
+    mainFile.addJavaVersion("Java ${java_version}")
     mainFile.addGameVersion("${project.minecraft_version}")
-    mainFile.changelogType = "html"
-    mainFile.changelog = file("$project.buildDir/doc/changelog.html")
+    mainFile.changelogType = 'html'
+    mainFile.changelog = file("${layout.buildDirectory.get()}/doc/changelog.html")
 }
-
 
 tasks.modrinth.dependsOn(tasks.build)
 
@@ -153,10 +89,10 @@ modrinth {
     token = "${modrinthApiKey}"
     projectId = modrinth_project_id
     versionNumber = "${version}"
-    versionName = "${archivesBaseName}-${version}"
+    versionName = "${project.base_name}-${project.name}-${version}"
     versionType = release_type
-    uploadFile = remapJar
+    uploadFile = tasks.named('remapJar')
     gameVersions = ["${project.minecraft_version}"]
-    loaders = ["fabric", "quilt"]
-    changelog = file("$project.buildDir/doc/changelog.html").exists() ? file("$project.buildDir/doc/changelog.html").text : null
+    loaders = ['fabric', 'quilt']
+    changelog = file("${layout.buildDirectory.get()}/doc/changelog.html").exists() ? file("${layout.buildDirectory.get()}/doc/changelog.html").text : null
 }
