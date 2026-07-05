@@ -9,6 +9,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Dispatcher
 {
@@ -97,7 +98,7 @@ public class Dispatcher
     public static <T> void sendToClientsLoadingChunk(T packet, LevelChunk chunk)
     {
         ServerChunkCache chunkCache = (ServerChunkCache) chunk.getLevel().getChunkSource();
-        sendToClients(packet, chunkCache.chunkMap.getPlayers(chunk.getPos(), false));
+        sendToClients(packet, chunkCache.chunkMap.getPlayers(chunk.getPos(), false).collect(Collectors.toList()));
     }
 
 

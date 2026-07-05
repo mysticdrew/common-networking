@@ -8,9 +8,9 @@ import commonnetwork.networking.exceptions.RegistrationException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static net.minecraftforge.network.NetworkDirection.PLAY_TO_CLIENT;
+import static net.minecraftforge.fml.network.NetworkDirection.PLAY_TO_CLIENT;
 
 public class ForgeNetworkHandler extends PacketRegistrationHandler
 {

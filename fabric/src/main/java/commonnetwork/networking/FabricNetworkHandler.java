@@ -96,7 +96,25 @@ public class FabricNetworkHandler extends PacketRegistrationHandler
         }
     }
 
-    public record Message<T>(ResourceLocation id, BiConsumer<T, FriendlyByteBuf> encoder)
+    public static final class Message<T>
     {
+        private final ResourceLocation id;
+        private final BiConsumer<T, FriendlyByteBuf> encoder;
+
+        public Message(ResourceLocation id, BiConsumer<T, FriendlyByteBuf> encoder)
+        {
+            this.id = id;
+            this.encoder = encoder;
+        }
+
+        public ResourceLocation id()
+        {
+            return this.id;
+        }
+
+        public BiConsumer<T, FriendlyByteBuf> encoder()
+        {
+            return this.encoder;
+        }
     }
 }

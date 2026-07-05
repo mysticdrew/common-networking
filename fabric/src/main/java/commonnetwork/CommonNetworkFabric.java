@@ -16,7 +16,7 @@ public class CommonNetworkFabric implements ModInitializer
     @Override
     public void onInitialize()
     {
-        var env = FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT) ? Side.CLIENT : Side.SERVER;
+        Side env = FabricLoader.getInstance().getEnvironmentType().equals(EnvType.CLIENT) ? Side.CLIENT : Side.SERVER;
         new CommonNetworkMod(new FabricNetworkHandler(env));
     }
 }

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[44,)"
+loaderVersion = "[36,)"
 license = "MIT"
 [[mods]]
 modId = "commonnetworking"
@@ -14,14 +14,14 @@ This mod unifies networking in to a single location to work with Forge and Fabri
 [[dependencies.commonnetworking]]
 modId = "forge"
 mandatory = true
-versionRange = "[45,)"
+versionRange = "[36,)"
 ordering = "NONE"
 side = "BOTH"
 # Here's another dependency
 [[dependencies.commonnetworking]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.19.4,)"
+versionRange = "[1.16.5,)"
 ordering = "NONE"
 side = "BOTH"
 mandator = false

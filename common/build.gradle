@@ -1,5 +1,5 @@
 plugins {
-    id 'net.neoforged.moddev.legacyforge'
+    id 'agency.highlysuspect.minivan' version '0.5'
     id 'multiloader-common'
 }
 
@@ -20,16 +20,11 @@ artifacts {
     commonResources(sourceSets.main.resources.sourceDirectories.singleFile)
 }
 
-legacyForge {
-    mcpVersion = minecraft_version
-    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
-    if (at.exists()) {
-        accessTransformers = [at.absolutePath]
-    }
-    parchment {
-        minecraftVersion = parchment_minecraft
-        mappingsVersion = parchment_version
-    }
+// minivan puts vanilla Minecraft (official Mojang names / mojmap) on the compile classpath.
+// Replaces net.neoforged.moddev.legacyforge, whose NeoForm Runtime cannot build pre-1.17 MCP.
+// common-networking's common has no access widener; the mod's common applies journeymap.accesswidener here.
+minivan {
+    version project.minecraft_version
 }
 
 dependencies {

@@ -9,6 +9,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.LevelChunk;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public interface NetworkHandler
 {
@@ -157,7 +158,7 @@ public interface NetworkHandler
     default <T> void sendToClientsLoadingChunk(T packet, LevelChunk chunk, boolean ignoreCheck)
     {
         ServerChunkCache chunkCache = (ServerChunkCache) chunk.getLevel().getChunkSource();
-        sendToClients(packet, chunkCache.chunkMap.getPlayers(chunk.getPos(), false), ignoreCheck);
+        sendToClients(packet, chunkCache.chunkMap.getPlayers(chunk.getPos(), false).collect(Collectors.toList()), ignoreCheck);
     }
 
     /**
