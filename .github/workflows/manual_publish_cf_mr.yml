@@ -1,4 +1,4 @@
-name: manual_publish
+name: manual_publish_cf_mr
 
 on: workflow_dispatch
 
